@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useAlumnos } from '../hooks/useAlumnos';
 import { AlumnoList } from '../components/AlumnoList';
 import { AlumnoForm } from '../components/AlumnoForm';
-import type { AlumnoResponse } from '../dto/alumno.dto';
-import type { AlumnoFormData } from '../dto/alumno.schema';
+import type { EstudianteResponse } from '../dto/alumno.dto';
+import type { EstudianteFormData } from '../dto/alumno.schema';
 import { Button, Typography, Box, CircularProgress, Alert } from '@mui/material';
 
 export const AlumnosScreen: React.FC = () => {
   const { alumnos, loading, error, createAlumno, updateAlumno, deleteAlumno } = useAlumnos();
-  const [editingAlumno, setEditingAlumno] = useState<AlumnoResponse | null>(null);
+  const [editingAlumno, setEditingAlumno] = useState<EstudianteResponse | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   const handleCreateNew = () => {
@@ -16,7 +16,7 @@ export const AlumnosScreen: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleEdit = (alumno: AlumnoResponse) => {
+  const handleEdit = (alumno: EstudianteResponse) => {
     setEditingAlumno(alumno);
     setShowForm(true);
   };
@@ -27,14 +27,14 @@ export const AlumnosScreen: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (data: AlumnoFormData) => {
+  const handleSubmit = async (data: EstudianteFormData) => {
     let success = false;
     if (editingAlumno) {
       success = await updateAlumno(editingAlumno.id, data);
     } else {
       success = await createAlumno(data);
     }
-    
+
     if (success) {
       setShowForm(false);
       setEditingAlumno(null);
@@ -50,11 +50,11 @@ export const AlumnosScreen: React.FC = () => {
     <Box>
       <Box className="flex justify-between items-center mb-6">
         <Typography variant="h4" component="h1">
-          Gestión de Alumnos
+          Gestión de Estudiantes
         </Typography>
         {!showForm && (
           <Button variant="contained" color="primary" onClick={handleCreateNew}>
-            Nuevo Alumno
+            Nuevo Estudiante
           </Button>
         )}
       </Box>
@@ -70,16 +70,16 @@ export const AlumnosScreen: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : showForm ? (
-        <AlumnoForm 
-          initialData={editingAlumno} 
-          onSubmit={handleSubmit} 
-          onCancel={handleCancel} 
+        <AlumnoForm
+          initialData={editingAlumno}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
         />
       ) : (
-        <AlumnoList 
-          alumnos={alumnos} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete} 
+        <AlumnoList
+          alumnos={alumnos}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       )}
     </Box>

@@ -1,47 +1,53 @@
 import React from 'react';
-import type { AlumnoResponse } from '../dto/alumno.dto';
+import type { EstudianteResponse } from '../dto/alumno.dto';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 interface AlumnoListProps {
-  alumnos: AlumnoResponse[];
-  onEdit: (alumno: AlumnoResponse) => void;
+  alumnos: EstudianteResponse[];
+  onEdit: (alumno: EstudianteResponse) => void;
   onDelete: (id: number) => void;
 }
 
 export const AlumnoList: React.FC<AlumnoListProps> = ({ alumnos, onEdit, onDelete }) => {
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
+      <Table sx={{ minWidth: 650 }} aria-label="tabla de estudiantes">
         <TableHead>
-          <TableRow className="bg-gray-100">
+          <TableRow sx={{ bgcolor: 'grey.100' }}>
             <TableCell>ID</TableCell>
             <TableCell>Nombre</TableCell>
             <TableCell>Apellido</TableCell>
             <TableCell>Email</TableCell>
-            <TableCell>Matrícula</TableCell>
+            <TableCell>DNI</TableCell>
+            <TableCell>Teléfono</TableCell>
+            <TableCell>Domicilio</TableCell>
+            <TableCell>Activo</TableCell>
             <TableCell align="right">Acciones</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {alumnos.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} align="center">No hay alumnos registrados</TableCell>
+              <TableCell colSpan={9} align="center">No hay estudiantes registrados</TableCell>
             </TableRow>
           ) : (
             alumnos.map((row) => (
-              <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell component="th" scope="row">{row.id}</TableCell>
+              <TableRow key={row.id} hover>
+                <TableCell>{row.id}</TableCell>
                 <TableCell>{row.nombre}</TableCell>
                 <TableCell>{row.apellido}</TableCell>
                 <TableCell>{row.email}</TableCell>
-                <TableCell>{row.matricula}</TableCell>
+                <TableCell>{row.dni}</TableCell>
+                <TableCell>{row.telefono || '—'}</TableCell>
+                <TableCell>{row.domicilio || '—'}</TableCell>
+                <TableCell>{row.activo ? 'Sí' : 'No'}</TableCell>
                 <TableCell align="right">
-                  <IconButton color="primary" onClick={() => onEdit(row)}>
+                  <IconButton color="primary" onClick={() => onEdit(row)} size="small">
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="error" onClick={() => onDelete(row.id)}>
+                  <IconButton color="error" onClick={() => onDelete(row.id)} size="small">
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>

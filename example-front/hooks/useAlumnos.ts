@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { alumnoService } from '../service/alumno.service';
-import type { AlumnoResponse, CreateAlumnoDto, UpdateAlumnoDto } from '../dto/alumno.dto';
+import type { EstudianteResponse, CreateEstudianteDto, UpdateEstudianteDto } from '../dto/alumno.dto';
 
 export const useAlumnos = () => {
-  const [alumnos, setAlumnos] = useState<AlumnoResponse[]>([]);
+  const [alumnos, setAlumnos] = useState<EstudianteResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +20,7 @@ export const useAlumnos = () => {
     }
   }, []);
 
-  const createAlumno = async (data: CreateAlumnoDto) => {
+  const createAlumno = async (data: CreateEstudianteDto) => {
     try {
       const newAlumno = await alumnoService.createAlumno(data);
       if (newAlumno) setAlumnos(prev => [...prev, newAlumno]);
@@ -31,7 +31,7 @@ export const useAlumnos = () => {
     }
   };
 
-  const updateAlumno = async (id: number, data: UpdateAlumnoDto) => {
+  const updateAlumno = async (id: number, data: UpdateEstudianteDto) => {
     try {
       const updated = await alumnoService.updateAlumno(id, data);
       if (updated) {

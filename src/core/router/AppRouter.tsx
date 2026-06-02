@@ -1,52 +1,53 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { PublicLayout } from '../../layouts/PublicLayout';
-import { AdminLayout } from '../../layouts/AdminLayout';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
-import { AlumnosScreen } from '../../../example-front/screen/AlumnosScreen';
-import { AUTH_TOKEN_STORAGE_KEY } from '../constants/auth.storage';
+import { LoginEstudianteScreen } from '../../features/authEstudiantes/screen/LoginEstudianteScreen';
+import { ESTUDIANTE_ROUTES } from '@/Routes/estudianteRoutes';
+import { ProtectedLayout } from '@/layouts/ProtectedLayout';
+import { useNavigate } from 'react-router-dom';
 
-/**
- * Pantalla temporal de login para el template. Cuando exista `src/features/auth`,
- * reemplazá esto importando la screen desde el `index` del módulo.
- */
-function LoginScreen() {
-  const navigate = useNavigate();
-  return (
-    <div className="text-center">
-      <h2 className="text-2xl font-bold mb-4">Iniciar Sesión</h2>
-      <p className="mb-4">Ingresa tus credenciales</p>
-      <button
-        type="button"
-        onClick={() => {
-          localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, 'dummy-token');
-          navigate('/alumnos', { replace: true });
-        }}
-        className="bg-indigo-600 text-white px-4 py-2 rounded"
-      >
-        Login de Prueba
-      </button>
-    </div>
-  );
-}
+//solo de prueba
+import { PerfilScreen } from '@/features/estudiante/screens/PerfilScreen';
+import { LegajoScreen } from '@/features/estudiante/screens/LegajoScreen';
+import { CalificacionesScreen } from '@/features/estudiante/screens/CalificacionesScreen';
+import { MesasScreen } from '@/features/estudiante/screens/MesasScreen';
+import { AsistenciaScreen } from '@/features/estudiante/screens/AsistenciaScreen';
+import { NotificacionesScreen } from '@/features/estudiante/screens/NotificacionesScreen';
+import { InscripcionesUcScreen } from '@/features/estudiante/screens/InscripcionesUcScreen';
+import { DashboardScreen } from '@/features/estudiante/screens/DashboardScreen';
+import { AlumnosScreen } from '../../../example-front/screen/AlumnosScreen';
+import { LogoutSuccess } from '@/common/components/sistema/LogoutSuccess';
+
+
+
 
 export const AppRouter: React.FC = () => {
+  const navigate = useNavigate();
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<PublicLayout />}>
-          <Route path="/login" element={<LoginScreen />} />
-        </Route>
+    <Routes>
+      {/* Ruta pública de login */}
+      <Route path={ESTUDIANTE_ROUTES.login} element={<LoginEstudianteScreen navigate />} />
+      <Route path={ESTUDIANTE_ROUTES.logoutSuccess} element={<LogoutSuccess onLoginAgain={() => navigate('/estudiante/login')} onGoHome={() => navigate('/')} />} />
+      {/* Rutas protegidas con layout compartido */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedLayout />}>
+          <Route path={ESTUDIANTE_ROUTES.dashboard} element={<DashboardScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.perfil} element={<PerfilScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.legajo} element={<LegajoScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.calificaciones} element={<CalificacionesScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.mesas} element={<MesasScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.asistencia} element={<AsistenciaScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.notificaciones} element={<NotificacionesScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.inscripcionesUc} element={<InscripcionesUcScreen />} />
+          {/* <Route path="/" element={<Navigate to={ESTUDIANTE_ROUTES.dashboard} replace />} /> */}
 
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AdminLayout />}>
-            <Route path="/alumnos" element={<AlumnosScreen />} />
-            <Route path="/" element={<Navigate to="/alumnos" replace />} />
-          </Route>
+          {/* Ruta para pruebas - podria servir para Administrativos */}
+          <Route path="/prueba" element={<AlumnosScreen />} />
         </Route>
+      </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      {/* Ruta comodín */}
+      <Route path="*" element={<Navigate to={ESTUDIANTE_ROUTES.login} replace />} />
+    </Routes>
   );
 };

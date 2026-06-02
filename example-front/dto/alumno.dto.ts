@@ -1,18 +1,31 @@
-export interface AlumnoResponse {
+export interface EstudianteResponse {
   id: number;
+  dni: string;
   nombre: string;
   apellido: string;
   email: string;
-  matricula: string;
-  createdAt?: string;
-  updatedAt?: string;
+  telefono: string;
+  domicilio: string;
+  fechaDeNacimiento: string; // ISO date
+  foto: string | null;
+  trabaja: boolean;
+  activo: boolean;
+  idAdministrativo: number;
+  idUsuario: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface CreateAlumnoDto {
+export interface CreateEstudianteDto {
+  dni: string;
   nombre: string;
   apellido: string;
   email: string;
-  matricula: string;
+  telefono?: string;
+  domicilio?: string;
+  fechaDeNacimiento?: string;
+  trabaja?: boolean;
+  activo?: boolean;
 }
 
-export interface UpdateAlumnoDto extends Partial<CreateAlumnoDto> {}
+export interface UpdateEstudianteDto extends Partial<CreateEstudianteDto> { }

@@ -1,25 +1,29 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TextField, Button, Box, Paper, Typography } from '@mui/material';
-import { alumnoSchema } from '../dto/alumno.schema';
-import type { AlumnoFormData } from '../dto/alumno.schema';
-import type { AlumnoResponse } from '../dto/alumno.dto';
+import { TextField, Button, Box, Paper, Typography, Grid, FormControlLabel, Checkbox } from '@mui/material';
+import { estudianteSchema, EstudianteFormData } from '../dto/alumno.schema';
+import type { EstudianteResponse } from '../dto/alumno.dto';
 
 interface AlumnoFormProps {
-  initialData?: AlumnoResponse | null;
-  onSubmit: (data: AlumnoFormData) => Promise<void>;
+  initialData?: EstudianteResponse | null;
+  onSubmit: (data: EstudianteFormData) => Promise<void>;
   onCancel: () => void;
 }
 
 export const AlumnoForm: React.FC<AlumnoFormProps> = ({ initialData, onSubmit, onCancel }) => {
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<AlumnoFormData>({
-    resolver: zodResolver(alumnoSchema),
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<EstudianteFormData>({
+    resolver: zodResolver(estudianteSchema),
     defaultValues: {
       nombre: '',
       apellido: '',
       email: '',
-      matricula: ''
+      dni: '',
+      telefono: '',
+      domicilio: '',
+      fechaDeNacimiento: '',
+      trabaja: false,
+      activo: true,
     }
   });
 
@@ -29,66 +33,129 @@ export const AlumnoForm: React.FC<AlumnoFormProps> = ({ initialData, onSubmit, o
         nombre: initialData.nombre,
         apellido: initialData.apellido,
         email: initialData.email,
-        matricula: initialData.matricula
+        dni: initialData.dni,
+        telefono: initialData.telefono,
+        domicilio: initialData.domicilio,
+        fechaDeNacimiento: initialData.fechaDeNacimiento?.split('T')[0] || '',
+        trabaja: initialData.trabaja,
+        activo: initialData.activo,
       });
     } else {
       reset({
         nombre: '',
         apellido: '',
         email: '',
-        matricula: ''
+        dni: '',
+        telefono: '',
+        domicilio: '',
+        fechaDeNacimiento: '',
+        trabaja: false,
+        activo: true,
       });
     }
   }, [initialData, reset]);
 
   return (
-    <Paper className="p-6">
-      <Typography variant="h6" className="mb-4">
-        {initialData ? 'Editar Alumno' : 'Nuevo Alumno'}
+    <Paper sx={{ p: 3 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        {initialData ? 'Editar Estudiante' : 'Nuevo Estudiante'}
       </Typography>
-      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          label="Nombre"
-          {...register('nombre')}
-          error={!!errors.nombre}
-          helperText={errors.nombre?.message}
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          label="Apellido"
-          {...register('apellido')}
-          error={!!errors.apellido}
-          helperText={errors.apellido?.message}
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          label="Email"
-          type="email"
-          {...register('email')}
-          error={!!errors.email}
-          helperText={errors.email?.message}
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          label="Matrícula"
-          {...register('matricula')}
-          error={!!errors.matricula}
-          helperText={errors.matricula?.message}
-        />
-        <Box className="mt-4 flex justify-end gap-2">
-          <Button variant="outlined" color="secondary" onClick={onCancel} disabled={isSubmitting}>
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              required
+              fullWidth
+              label="Nombre"
+              {...register('nombre')}
+              error={!!errors.nombre}
+              helperText={errors.nombre?.message}
+              size="small"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              required
+              fullWidth
+              label="Apellido"
+              {...register('apellido')}
+              error={!!errors.apellido}
+              helperText={errors.apellido?.message}
+              size="small"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              required
+              fullWidth
+              label="Email"
+              type="email"
+              {...register('email')}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+              size="small"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              required
+              fullWidth
+              label="DNI"
+              {...register('dni')}
+              error={!!errors.dni}
+              helperText={errors.dni?.message}
+              size="small"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              label="Teléfono"
+              {...register('telefono')}
+              error={!!errors.telefono}
+              helperText={errors.telefono?.message}
+              size="small"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              label="Domicilio"
+              {...register('domicilio')}
+              error={!!errors.domicilio}
+              helperText={errors.domicilio?.message}
+              size="small"
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              label="Fecha de nacimiento"
+              type="date"
+              {...register('fechaDeNacimiento')}
+              error={!!errors.fechaDeNacimiento}
+              helperText={errors.fechaDeNacimiento?.message}
+              size="small"
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <FormControlLabel
+              control={<Checkbox {...register('trabaja')} />}
+              label="Trabaja actualmente"
+            />
+            <FormControlLabel
+              control={<Checkbox {...register('activo')} defaultChecked />}
+              label="Activo"
+              sx={{ ml: 2 }}
+            />
+          </Grid>
+        </Grid>
+        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <Button variant="outlined" onClick={onCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
             Guardar
           </Button>
         </Box>

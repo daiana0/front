@@ -8,7 +8,7 @@ function hasSession(): boolean {
 
 export const ProtectedRoute: React.FC = () => {
   if (!hasSession()) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/estudiante/login" replace />;
   }
 
   return <Outlet />;
