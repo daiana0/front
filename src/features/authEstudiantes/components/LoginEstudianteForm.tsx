@@ -1,31 +1,29 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Box,
-  InputBase,
-  InputAdornment,
-  IconButton,
-  Button,
-  Typography,
-  FormHelperText,
-  Link,
-} from '@mui/material';
-import { UserShieldIcon } from '../../../shared/icons/UserShieldIcon';
-import { KeyIcon } from '../../../shared/icons/KeyIcon';
+import { Box, IconButton, InputAdornment, Link } from '@mui/material';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import LoginIcon from '@mui/icons-material/Login';
+import { CampoTexto } from '../../../common/components/sistema';
+import { UserShieldIcon } from '../../../shared/icons/UserShieldIcon';
+import { KeyIcon } from '../../../shared/icons/KeyIcon';
+import { BotonAuth } from './BotonAuth';
 import { loginSchema } from '../dto/authEstudiante.schema';
 import type { LoginFormData } from '../dto/authEstudiante.schema';
-import { labelFieldStyles } from '../../../core/theme/theme';
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormData) => unknown | Promise<unknown>;
+  onForgotPasswordClick: () => void;
   loading?: boolean;
 }
 
-export const LoginEstudianteForm: React.FC<LoginFormProps> = ({ onSubmit, loading = false }) => {
+export const LoginEstudianteForm: React.FC<LoginFormProps> = ({
+  onSubmit,
+  loading = false,
+  onForgotPasswordClick,
+}) => {
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
@@ -38,90 +36,93 @@ export const LoginEstudianteForm: React.FC<LoginFormProps> = ({ onSubmit, loadin
 
   const busy = loading || isSubmitting;
 
+  const emailRegister = register('email');
+  const passwordRegister = register('contrasenia');
+
   return (
     <Box
       component="form"
       onSubmit={handleSubmit(onSubmit)}
       noValidate
-      sx={{
-        width: '100%',
-        maxWidth: { xs: '100%', sm: 432 }, // 100% en móviles, 432px en tablets/desktop
-        display: 'flex',
-        flexDirection: 'column',
-        gap: { xs: '20px', sm: '24px' }, // menos gap en móviles
-        px: { xs: 2, sm: 0 }, // padding lateral en móviles para evitar que toque bordes
-      }}
+      sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <Typography component="label" htmlFor="email" sx={{ ...labelFieldStyles, px: '4px' }}>
-          Email
-        </Typography>
-        <InputBase
-          id="email"
-          type="email"
-          placeholder="nombre@issrc.edu"
-          fullWidth
-          error={!!errors.email}
-          startAdornment={
-            <InputAdornment position="start">
-              <UserShieldIcon fontSize="small" />
-            </InputAdornment>
-          }
-          {...register('email')}
-        />
-        {errors.email && <FormHelperText error sx={{ px: '4px' }}>{errors.email.message}</FormHelperText>}
-      </Box>
+      <CampoTexto
+        id="email"
+        label="Email"
+        type="email"
+        placeholder="nombre@issrc.edu"
+        autoComplete="email"
+        error={!!errors.email}
+        helperText={errors.email?.message}
+        inputRef={emailRegister.ref}
+        name={emailRegister.name}
+        onChange={emailRegister.onChange}
+        onBlur={emailRegister.onBlur}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <UserShieldIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <Typography component="label" htmlFor="contrasenia" sx={{ ...labelFieldStyles, px: '4px' }}>
-          Contraseña
-        </Typography>
-        <InputBase
-          id="contrasenia"
-          type={showPassword ? 'text' : 'password'}
-          placeholder="••••••••••••"
-          fullWidth
-          error={!!errors.contrasenia}
-          startAdornment={
-            <InputAdornment position="start">
-              <KeyIcon fontSize="small" />
-            </InputAdornment>
-          }
-          endAdornment={
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="Mostrar u ocultar contraseña"
-                onClick={() => setShowPassword((v) => !v)}
-                edge="end"
-                size="small"
-              >
-                {showPassword ? (
-                  <VisibilityOffOutlinedIcon fontSize="small" />
-                ) : (
-                  <VisibilityOutlinedIcon fontSize="small" />
-                )}
-              </IconButton>
-            </InputAdornment>
-          }
-          {...register('contrasenia')}
-        />
-        {errors.contrasenia && (
-          <FormHelperText error sx={{ px: '4px' }}>{errors.contrasenia.message}</FormHelperText>
-        )}
-      </Box>
+      <CampoTexto
+        id="contrasenia"
+        label="Contraseña"
+        type={showPassword ? 'text' : 'password'}
+        placeholder="••••••••••••"
+        autoComplete="current-password"
+        error={!!errors.contrasenia}
+        helperText={errors.contrasenia?.message}
+        inputRef={passwordRegister.ref}
+        name={passwordRegister.name}
+        onChange={passwordRegister.onChange}
+        onBlur={passwordRegister.onBlur}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <KeyIcon fontSize="small" />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="Mostrar u ocultar contraseña"
+                  onClick={() => setShowPassword((v) => !v)}
+                  edge="end"
+                  size="small"
+                >
+                  {showPassword ? (
+                    <VisibilityOffOutlinedIcon fontSize="small" />
+                  ) : (
+                    <VisibilityOutlinedIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
 
-      <Button
+      <BotonAuth
         type="submit"
-        variant="contained"
-        color="primary"
         disabled={busy}
         startIcon={<LoginIcon />}
-        sx={{ mt: '8px', height: { xs: 48, sm: 60 } }} // altura ligeramente menor en móviles
       >
         {busy ? 'Ingresando…' : 'Ingresar'}
-      </Button>
+      </BotonAuth>
 
-      <Link href="#" sx={{ alignSelf: 'center', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+      <Link
+        component="button"
+        type="button"
+        onClick={onForgotPasswordClick}
+        sx={{ alignSelf: 'center', color: '#005B7F', fontWeight: 500, fontSize: '13px' }}
+        underline="hover"
+      >
         ¿Olvidaste tu contraseña?
       </Link>
     </Box>

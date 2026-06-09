@@ -1,12 +1,26 @@
+export const ESTUDIANTE_BASE = '/estudiante';
+
+/** Rutas relativas usadas dentro de AppRouter (montado en /estudiante/*) */
 export const ESTUDIANTE_ROUTES = {
-    login: "/estudiante/login",
-    dashboard: "/estudiante/dashboard",
-    perfil: "/estudiante/perfil",
-    legajo: "/estudiante/legajo",
-    calificaciones: "/estudiante/calificaciones",
-    mesas: "/estudiante/mesas-de-examen",
-    asistencia: "/estudiante/asistencia",
-    notificaciones: "/estudiante/notificaciones",
-    inscripcionesUc: "/estudiante/inscripciones-uc",
-    logoutSuccess: "/estudiante/logout-success",
+    login: "/login",
+    dashboard: "/dashboard",
+    perfil: "/perfil",
+    legajo: "/legajo",
+    calificaciones: "/calificaciones",
+    historialAcademico: "/historial-academico",
+    mesas: "/mesas-de-examen",
+    asistencia: "/asistencia",
+    notificaciones: "/notificaciones",
+    inscripcionesUc: "/inscripciones-uc",
+    logoutSuccess: "/logout-success",
+    recuperarContrasenia: "/recuperar-contrasenia",
+    restablecerContrasenia: "/restablecer-contrasenia/:token",
+    restablecerExitoso: "/restablecer-exitoso",
 };
+
+/** Rutas absolutas para navegación desde fuera del router de estudiantes */
+export const toEstudiantePath = (route: string) => `${ESTUDIANTE_BASE}${route}`;
+
+export const estudianteLoginPath = toEstudiantePath(ESTUDIANTE_ROUTES.login);
+export const estudianteRecuperarPath = toEstudiantePath(ESTUDIANTE_ROUTES.recuperarContrasenia);
+export const estudianteRestablecerExitosoPath = toEstudiantePath(ESTUDIANTE_ROUTES.restablecerExitoso);

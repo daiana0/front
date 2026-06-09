@@ -14,20 +14,25 @@ const tokens = {
     surfaceHoverDark: '#f0f2f8',
     primaryTenue: '#eef5f7',
     secondaryLight: "#C6E7FF",
+    success: "#0F766E",
+    warning: "#D97706",
+    danger: "#DC2626",
     textLogout: "#6c757d",
     activeBar: "#8ECEF7",     // Para el borde activo del sidebar
     textDark: "#171C22",       // Para íconos y textos oscuros
     surfaceHoverAlt: "#F0F4FD", // Para el fondo del Search en TopNav
+    pdf: "#d32f2f",
+    excel: "#1e7e34"
   },
   
   borderRadius: {
-    button:6,
-    card: 3,
-    modal: 3,
-    table: 3,
+    button: 6,
+    card: 12,
+    modal: 12,
+    table: 12,
     input: 6,
-    paginacion:2,
-    perfilCard:7,
+    paginacion: 4,
+    perfilCard: 16,
     avatar: 999,
   },
   
@@ -52,28 +57,26 @@ const tokens = {
     fast: '0.1s ease',
     normal: '0.2s ease',
     slow: '0.3s ease',
-
-    sidebarNormal:"0.25s ease",
-    sidebarSlow: "0.5s ease",
-    sidebar: "0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+    sidebar: '0.35s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   layout: {
-  sidebar: {
-    expanded: 288,
-    collapsed: 80,
-  },
+    sidebar: {
+      expanded: 288,
+      collapsed: 80,
+    },
 
-  navbar: {
-    height: 72,
+    navbar: {
+      height: 80,
+    },
   },
-},
   typography: {
-    fontFamily: 'Manrope,Poppins, sans-serif',
+    fontFamily: 'Manrope, Poppins, Inter, sans-serif',
     weights: {
       regular: 400,
       medium: 500,
       semibold: 600,
       bold: 700,
+      extrabold: 800,
     },
   },
 };
@@ -92,20 +95,27 @@ export const sistemaTheme = createTheme({
   
   typography: {
     fontFamily: tokens.typography.fontFamily,
-    h1: { fontWeight: tokens.typography.weights.bold },
-    h2: { fontWeight: tokens.typography.weights.bold },
-    h3: { fontWeight: tokens.typography.weights.semibold },
-    h4: { fontWeight: tokens.typography.weights.semibold },
-    h5: { fontWeight: tokens.typography.weights.semibold },
-    h6: { fontWeight: tokens.typography.weights.semibold },
+    h1: { fontWeight: tokens.typography.weights.extrabold, fontSize: '2.25rem' },
+    h2: { fontWeight: tokens.typography.weights.bold, fontSize: '1.875rem' },
+    h3: { fontWeight: tokens.typography.weights.semibold, fontSize: '1.5rem' },
+    h4: { fontWeight: tokens.typography.weights.semibold, fontSize: '1.25rem' },
+    h5: { fontWeight: tokens.typography.weights.semibold, fontSize: '1.125rem' },
+    h6: { fontWeight: tokens.typography.weights.semibold, fontSize: '1rem' },
     body1: { fontWeight: tokens.typography.weights.regular, color: tokens.colors.textPrimary },
     body2: { fontWeight: tokens.typography.weights.regular, color: tokens.colors.textPrimary },
-    button: { fontWeight: tokens.typography.weights.semibold },
+    button: { fontWeight: tokens.typography.weights.semibold, textTransform: 'none' },
   },
     
   spacing: tokens.spacing.sm,
   
-  shadows: [tokens.shadows.none, tokens.shadows.sm, tokens.shadows.md, tokens.shadows.lg, tokens.shadows.xl, ...Array(20).fill(tokens.shadows.xl)] as any,
+  shadows: [
+    tokens.shadows.none,
+    tokens.shadows.sm,
+    tokens.shadows.md,
+    tokens.shadows.lg,
+    tokens.shadows.xl,
+    ...Array(20).fill(tokens.shadows.xl)
+  ] as any,
   
   components: {
     MuiButton: {
@@ -120,7 +130,7 @@ export const sistemaTheme = createTheme({
         },
       },
     },
-    
+
     MuiCard: {
       styleOverrides: {
         root: {
@@ -132,7 +142,7 @@ export const sistemaTheme = createTheme({
         },
       },
     },
-    
+
     MuiPaper: {
       styleOverrides: {
         root: {
@@ -143,13 +153,13 @@ export const sistemaTheme = createTheme({
         },
       },
     },
-    
+
     MuiTableCell: {
       styleOverrides: {
         root: {
           borderBottom: `1px solid ${tokens.colors.border}`,
           color: tokens.colors.textPrimary,
-          padding: `${tokens.spacing.md}px ${tokens.spacing.md}px`,
+          padding: '16px',
         },
         head: {
           fontWeight: tokens.typography.weights.semibold,
@@ -157,7 +167,6 @@ export const sistemaTheme = createTheme({
         },
       },
     },
-    
     MuiTableRow: {
       styleOverrides: {
         root: {
@@ -165,7 +174,7 @@ export const sistemaTheme = createTheme({
         },
       },
     },
-    
+
     MuiTextField: {
       styleOverrides: {
         root: {
@@ -204,6 +213,12 @@ export const sistemaTheme = createTheme({
       },
     },
     
+    MuiModal: {
+      defaultProps: {
+        disableRestoreFocus: true,
+      },
+    },
+
     MuiDialog: {
       styleOverrides: {
         paper: {

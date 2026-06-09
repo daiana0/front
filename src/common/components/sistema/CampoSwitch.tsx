@@ -1,5 +1,5 @@
 // src/components/sistema/CampoSwitch.tsx
-import { FormControlLabel, Switch, SwitchProps, styled, Paper } from '@mui/material';
+import { FormControlLabel, Switch, type SwitchProps, styled, Paper } from '@mui/material';
   import { themeTokens } from "./theme";
 import React from 'react';
 // Switch personalizado con estilos

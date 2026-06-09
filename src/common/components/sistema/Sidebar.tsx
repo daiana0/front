@@ -11,12 +11,11 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useLocation, useNavigate } from "react-router-dom";
-import logo from "../../../assets/logos/LOGO-ISSRC-blanco.svg"
+import logo from "../../../assets/logos/LOGO-ISSRC-blanco.svg";
 import { themeTokens } from "./theme";
 import React from "react";
-import { NavigationItem } from "@/types/navigation";
-// const SIDEBAR_WIDTH = 288;
-// const SIDEBAR_COLLAPSED = 80;
+import type { NavigationItem } from "@/types/navigation";
+
 
 interface SidebarProps {
   collapsed: boolean;
@@ -24,7 +23,6 @@ interface SidebarProps {
   navigation: NavigationItem[];
   title: string;
 }
-
 
 export const Sidebar = ({
   collapsed,
@@ -39,7 +37,9 @@ export const Sidebar = ({
     <Box
       component="aside"
       sx={{
-        width: collapsed ? themeTokens.layout.sidebar.collapsed : themeTokens.layout.sidebar.expanded,
+        width: collapsed
+          ? themeTokens.layout.sidebar.collapsed
+          : themeTokens.layout.sidebar.expanded,
         bgcolor: themeTokens.colors.primary,
         color: themeTokens.colors.surface,
         position: "fixed",
@@ -84,7 +84,7 @@ export const Sidebar = ({
         sx={{
           width: "100%",
           height: "calc(100vh - 16px)",
-          pb: 4,
+          pb: 8,
           display: "flex",
           flexDirection: "column",
           overflowX: "hidden",
@@ -94,8 +94,6 @@ export const Sidebar = ({
             backgroundColor: alpha(themeTokens.colors.surface, 0.15),
             borderRadius: "10px",
           },
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
         }}
       >
         <Box
@@ -115,7 +113,6 @@ export const Sidebar = ({
             alt="Logo ISSRC"
             sx={{
               width: collapsed ? 30 : 90,
-              //opacity: collapsed ? 0 : 1,
               transform: collapsed ? "translateX(0px)" : "translateX(0)",
               overflow: "hidden",
               transition: `all ${themeTokens.transitions.slow}`,
@@ -139,17 +136,16 @@ export const Sidebar = ({
             fontSize: 16,
             textAlign: "center",
             fontFamily: themeTokens.typography.fontFamily,
-            //my: 2, 
+            //my: 2,
             my: 1,
             whiteSpace: "nowrap",
-            overflow: "hidden",
+            overflow: collapsed ? "hidden" : "visible",
             opacity: collapsed ? 0 : 1,
             transform: collapsed ? "translateY(-10px)" : "translateY(0)",
             transition: `all ${themeTokens.transitions.slow}`,
-            color: themeTokens.colors.surface,
+            color:themeTokens.colors.surface,
           }}
-        >
-          {title}
+        >{title} 
         </Typography>
 
         <Divider
@@ -169,6 +165,7 @@ export const Sidebar = ({
                 key={item.path}
                 disablePadding
                 sx={{
+                  pb:1,
                   mb: 0.5,
                   px: collapsed ? 0.5 : 2,
                   transition: `padding ${themeTokens.transitions.normal}`,
@@ -192,8 +189,12 @@ export const Sidebar = ({
                       borderRadius: "12px",
                       overflow: "hidden",
                       transition: `background-color ${themeTokens.transitions.fast}, transform ${themeTokens.transitions.slow}, gap ${themeTokens.transitions.slow}`,
-                      bgcolor: isActive ? themeTokens.colors.surface : "transparent",
-                      color: isActive ? themeTokens.colors.primary : themeTokens.colors.surface,
+                      bgcolor: isActive
+                        ? themeTokens.colors.surface
+                        : "transparent",
+                      color: isActive
+                        ? themeTokens.colors.primary
+                        : themeTokens.colors.surface,
                       borderLeft: isActive
                         ? `6px solid ${themeTokens.colors.activeBar}`
                         : "6px solid transparent",

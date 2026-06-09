@@ -1,5 +1,5 @@
-// src/components/sistema/PerfilCard.tsx
-import { Box, Paper, IconButton, Typography, styled } from '@mui/material';
+// src/common/components/sistema/PerfilCard.tsx
+import { Box, Paper, IconButton, Typography, CircularProgress, styled } from '@mui/material';
 import { CameraAlt as CameraIcon } from '@mui/icons-material';
 import { themeTokens } from './theme';
 import React from 'react';
@@ -23,6 +23,9 @@ interface PerfilCardProps {
     imagenUrl?: string;
     editable?: boolean;
     onEditClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    onFileSelected?: (file: File) => void;
+    fileAccept?: string;
+    uploading?: boolean;
     tipo?: 'alumno' | 'docente' | 'administrador';
 }
 
@@ -33,6 +36,9 @@ export const PerfilCard = ({
     imagenUrl = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
     editable = true,
     onEditClick,
+    onFileSelected,
+    fileAccept = 'image/*',
+    uploading = false,
 }: PerfilCardProps) => {
 
     // Handler for file edit
@@ -44,28 +50,37 @@ export const PerfilCard = ({
     }, [imagenUrl]);
 
     const handleCameraClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (onFileSelected) {
+            fileInputRef.current?.click();
+            return;
+        }
         if (onEditClick) {
             onEditClick(event);
-        } else {
-            fileInputRef.current?.click();
+            return;
         }
+        fileInputRef.current?.click();
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (uploadEvent) => {
-                if (uploadEvent.target?.result) {
-                    setAvatarSrc(uploadEvent.target.result as string);
-                }
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        if (onFileSelected) {
+            onFileSelected(file);
+            e.target.value = '';
+            return;
         }
+
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+            if (uploadEvent.target?.result) {
+                setAvatarSrc(uploadEvent.target.result as string);
+            }
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
     };
 
-    // Map subtle background variation or details if requested for different roles (alumno, docente, administrador)
-    // Let's draw an elegant mathematical/academic repeating wave/grid vector mesh dynamically of zIndex 0
     const renderAcademicPattern = () => {
         return (
             <Box
@@ -90,7 +105,6 @@ export const PerfilCard = ({
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                 >
-                    {/* Subtle math graph / educational curved lines */}
                     <path
                         d="M-50 128 C 100 0, 200 256, 463 128 M-50 160 C 120 40, 220 280, 463 170 M-50 96 C 80 -40, 180 220, 463 86"
                         stroke="#FFFFFF"
@@ -115,33 +129,27 @@ export const PerfilCard = ({
                 padding: { xs: '24px', sm: '32px', md: '40px' },
                 isolation: 'isolate',
                 position: 'relative',
-                // width: '100%',
-                // maxWidth: '926px',
                 minHeight: { xs: 'auto', md: '150px' },
                 backgroundColor: themeTokens.colors.primary, // #005B7F
-                borderRadius: themeTokens.borderRadius.perfilCard,
+                borderRadius: '32px', // let's use the rounded shape as in Figma
                 overflow: 'hidden',
                 boxShadow: themeTokens.shadows.lg,
                 transition: `all ${themeTokens.transitions.normal}`,
                 '&:hover': {
                     boxShadow: themeTokens.shadows.xl,
                 },
-                // margin: '0 auto',
             }}
         >
-            {/* Background Academic Pattern */}
             {renderAcademicPattern()}
 
-            {/* Internal interactive input */}
             <input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept="image/*"
+                accept={fileAccept}
                 style={{ display: 'none' }}
             />
 
-            {/* Main Container - Left: Avatar, Right: Content */}
             <Box
                 sx={{
                     display: 'flex',
@@ -152,7 +160,6 @@ export const PerfilCard = ({
                     zIndex: 1,
                 }}
             >
-                {/* Avatar Area */}
                 <Box
                     sx={{
                         position: 'relative',
@@ -161,12 +168,11 @@ export const PerfilCard = ({
                         flexShrink: 0,
                     }}
                 >
-                    {/* Avatar Image Wrapper */}
                     <Box
                         sx={{
                             width: '120px',
                             height: '120px',
-                            borderRadius: themeTokens.borderRadius.avatar,
+                            borderRadius: '50%',
                             overflow: 'hidden',
                             position: 'relative',
                             backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -182,14 +188,29 @@ export const PerfilCard = ({
                                 objectFit: 'cover',
                             }}
                         />
-                        {/* Overlay to give inset shadow from the figma designs */}
                         <AvatarOverlay />
+                        {uploading && (
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                                    borderRadius: '50%',
+                                    zIndex: 1,
+                                }}
+                            >
+                                <CircularProgress size={32} sx={{ color: '#FFFFFF' }} />
+                            </Box>
+                        )}
                     </Box>
 
-                    {/* Upload Button */}
                     {editable && (
                         <IconButton
                             onClick={handleCameraClick}
+                            disabled={uploading}
                             aria-label="Subir foto de perfil"
                             sx={{
                                 position: 'absolute',
@@ -213,7 +234,6 @@ export const PerfilCard = ({
                     )}
                 </Box>
 
-                {/* Text Area */}
                 <Box
                     sx={{
                         display: 'flex',
@@ -223,15 +243,12 @@ export const PerfilCard = ({
                         maxWidth: '100%',
                     }}
                 >
-                    {/* Full Name */}
                     <Typography
                         variant="h4"
                         sx={{
                             fontFamily: themeTokens.typography.fontFamily,
                             fontWeight: 600,
-                            fontSize: { xs: '15px', sm: '20px', md: '26px' },
-                            lineHeight: '40px',
-                            letterSpacing: '-0.9px',
+                            fontSize: { xs: '20px', sm: '24px', md: '30px' },
                             color: '#FFFFFF',
                             mb: '4px',
                         }}
@@ -239,14 +256,12 @@ export const PerfilCard = ({
                         {nombre}
                     </Typography>
 
-                    {/* Subheading / Role */}
                     <Typography
                         variant="subtitle1"
                         sx={{
                             fontFamily: themeTokens.typography.fontFamily,
                             fontWeight: 500,
                             fontSize: '16px',
-                            lineHeight: '28px',
                             color: 'rgba(255, 255, 255, 0.8)',
                             mb: '12px',
                         }}
@@ -254,14 +269,12 @@ export const PerfilCard = ({
                         {rol}
                     </Typography>
 
-                    {/* Description */}
                     <Typography
                         variant="body1"
                         sx={{
                             fontFamily: themeTokens.typography.fontFamily,
                             fontWeight: 400,
-                            fontSize: '18px',
-                            lineHeight: '29px',
+                            fontSize: '15px',
                             color: 'rgba(198, 231, 255, 0.8)',
                         }}
                     >

@@ -1,8 +1,6 @@
-// src/components/sistema/BadgeContador.tsx
+import React, { ReactNode } from 'react';
 import { Badge, Chip, Box, Typography } from '@mui/material';
-import { ReactNode } from 'react';
-import { themeTokens } from './theme';
-import React from 'react';
+import { themeTokens } from './theme.js';
 
 interface BadgeContadorProps {
   contador: number;
@@ -12,30 +10,34 @@ interface BadgeContadorProps {
   variant?: 'badge' | 'chip';
 }
 
-export const BadgeContador = ({
+export const BadgeContador: React.FC<BadgeContadorProps> = ({
   contador,
   texto,
   icono,
   color = 'primary',
   variant = 'chip'
-}: BadgeContadorProps) => {
+}) => {
   if (variant === 'chip') {
     return (
       <Chip
-        icon={icono}
+        icon={icono as any}
         label={`${contador} ${texto || ''}`}
         color={color}
         size="small"
-        sx={{ fontWeight: 500 }}
+        sx={{ 
+          fontWeight: 600,
+          borderRadius: `${themeTokens.borderRadius.button}px`,
+          height: '24px'
+        }}
       />
     );
   }
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: themeTokens.spacing.xs }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: `${themeTokens.spacing.xs}px` }}>
       {icono}
       <Badge badgeContent={contador} color={color} showZero>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
           {texto}
         </Typography>
       </Badge>

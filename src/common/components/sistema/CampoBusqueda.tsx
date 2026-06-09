@@ -27,15 +27,6 @@ import React from 'react';
     };
 
     return (
-      <Paper 
-      elevation={0}
-      sx={{ 
-        bgcolor: 'background.paper',
-        p: 0.5,
-        borderRadius: 1,
-        border: `1px solid ${themeTokens.colors.border}`
-      }}
-    >
       <TextField
         label={label}
         placeholder={placeholder}
@@ -61,6 +52,5 @@ import React from 'react';
           },
         }}
       />
-      </Paper>
     );
   };

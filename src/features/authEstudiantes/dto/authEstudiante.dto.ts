@@ -20,6 +20,7 @@ export interface AuthUser {
     apellido: string;
     email: string;
     rol: UserRole;
+    idEstudiante?: number;
 }
 
 /** Respuesta cruda de `POST /auth/login`. */
@@ -32,8 +33,11 @@ export interface LoginResponse {
 /** Payload decodificado del JWT */
 export interface JwtPayload {
     id: number;
+    idEstudiante?: number;
     email: string;
     rol: string;
+    nombre: string;
+    apellido: string;
     entityType: string;
     jti: string;
     iat: number;

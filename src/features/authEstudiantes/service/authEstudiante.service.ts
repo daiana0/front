@@ -2,7 +2,6 @@ import { authRepository } from '../repository/authEstudiante.repository';
 import { AUTH_TOKEN_STORAGE_KEY } from '../../../core/constants/auth.storage';
 import { decodeJwtPayload } from '../utils/jwt';
 import type { LoginRequest, AuthUser, JwtPayload } from '../dto/authEstudiante.dto';
-
 export const authEstudianteService = {
   async login(payload: LoginRequest): Promise<AuthUser> {
     const { data, error } = await authRepository.login(payload);
@@ -47,8 +46,9 @@ export const authEstudianteService = {
       id: payload.id,
       email: payload.email,
       rol: payload.rol as AuthUser['rol'],
-      nombre: '',   // no disponible en el token
-      apellido: '', // no disponible en el token
+      nombre: payload.nombre || '',
+      apellido: payload.apellido || '',
+      idEstudiante: payload.idEstudiante,
     };
   },
 };

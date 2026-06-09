@@ -8,11 +8,12 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
   Divider,
   Link,
   IconButton
 } from '@mui/material';
+import { estudianteLoginPath } from '@/Routes/estudianteRoutes';
+import { USUARIO_ROUTES } from '@/Routes/usuariosRoutes';
 
 // Material Icons
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -22,7 +23,6 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import RoomIcon from '@mui/icons-material/Room';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import CompassCalibrationIcon from '@mui/icons-material/Explore';
 import SchoolIcon from '@mui/icons-material/School';
 import PeopleIcon from '@mui/icons-material/People';
 
@@ -139,9 +139,7 @@ export const Inicio = () => {
                   }}
                 >
                   <Link
-                    onClick={() => {
-                      navigate('/');
-                    }}
+                    href="#inicio"
                     sx={{
                       fontSize: '14px',
                       fontWeight: 700,
@@ -167,7 +165,7 @@ export const Inicio = () => {
                   >
                     Carreras
                   </Link>
-                  <Link
+                  {/* <Link
                     href="#institucional"
                     sx={{
                       fontSize: '14px',
@@ -179,7 +177,7 @@ export const Inicio = () => {
                     }}
                   >
                     Institucional
-                  </Link>
+                  </Link> */}
                   <Link
                     href="#contacto"
                     sx={{
@@ -200,6 +198,7 @@ export const Inicio = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Button
                   variant="contained"
+                  onClick={() => navigate(`usuario/${USUARIO_ROUTES.registro}`)}
                   sx={{
                     borderRadius: '9999px',
                     background: 'linear-gradient(90deg, #00474C 0%, #006067 100%)',
@@ -228,7 +227,7 @@ export const Inicio = () => {
         <Box component="main" sx={{ pt: 16, pb: 12 }}>
 
           {/* SECTION 1: HERO SECTION */}
-          <Container maxWidth="lg" sx={{ mt: 8, mb: 10 }}>
+          <Container id="inicio" maxWidth="lg" sx={{ mt: 8, mb: 10 }}>
             <Box
               sx={{
                 position: 'relative',
@@ -537,9 +536,9 @@ export const Inicio = () => {
 
                   {/* Footer links static */}
                   <Link
-                    href="#"
+                    onClick={() => navigate(`usuario/${USUARIO_ROUTES.login}`)}
                     underline="none"
-                    sx={{
+                    style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1.5,
@@ -549,6 +548,7 @@ export const Inicio = () => {
                       lineHeight: '20px',
                       letterSpacing: '-0.35px',
                       color: '#00474C',
+                      cursor: 'pointer',
                     }}
                   >
                     INGRESAR AL PORTAL <ArrowForwardIcon sx={{ fontSize: 16 }} />
@@ -662,7 +662,7 @@ export const Inicio = () => {
 
                   {/* Footer links static (Secondary indicator) */}
                   <Link
-                    onClick={() => navigate('/estudiantes/login')}
+                    onClick={() => navigate(estudianteLoginPath)}
                     underline="none"
                     style={{
                       display: 'flex',
@@ -1324,7 +1324,7 @@ export const Inicio = () => {
 
                     <Link
                       onClick={() => {
-                        navigate('/estudiantes/login');
+                        navigate(estudianteLoginPath);
                       }}
                       underline="none"
                       sx={{
@@ -1342,7 +1342,7 @@ export const Inicio = () => {
 
                     <Link
                       onClick={() => {
-                        navigate('/inscripciones');
+                        navigate(`usuario/${USUARIO_ROUTES.login}`);
                       }}
                       underline="none"
                       sx={{
@@ -1379,6 +1379,9 @@ export const Inicio = () => {
 
                     <Box sx={{ display: 'flex', gap: 2 }}>
                       <IconButton
+                        onClick={() => {
+                          window.open('https://www.instagram.com/institutosuperior.starosa/?hl=es', '_blank');
+                        }}
                         sx={{
                           width: '40px',
                           height: '40px',
@@ -1392,6 +1395,9 @@ export const Inicio = () => {
                         <InstagramIcon sx={{ fontSize: '20px' }} />
                       </IconButton>
                       <IconButton
+                        onClick={() => {
+                          window.open('https://www.facebook.com/santa.decalamuchita/?locale=es_LA', '_blank');
+                        }}
                         sx={{
                           width: '40px',
                           height: '40px',
@@ -1437,12 +1443,12 @@ export const Inicio = () => {
               </Typography>
 
               <Box sx={{ display: 'flex', gap: 4 }}>
-                <Link href="#" underline="hover" sx={{ color: '#00425E', fontWeight: 600, fontSize: '14px', fontFamily: '"Work Sans", sans-serif' }}>
+                <Typography variant="body2" sx={{ color: '#00425E', fontWeight: 600, fontSize: '14px', fontFamily: '"Work Sans", sans-serif' }}>
                   Privacidad
-                </Link>
-                <Link href="#" underline="hover" sx={{ color: '#00425E', fontWeight: 600, fontSize: '14px', fontFamily: '"Work Sans", sans-serif' }}>
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#00425E', fontWeight: 600, fontSize: '14px', fontFamily: '"Work Sans", sans-serif' }}>
                   Términos
-                </Link>
+                </Typography>
               </Box>
             </Box>
 

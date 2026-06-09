@@ -8,7 +8,7 @@ export const handleApiError = (error: any): ApiResponse<any> => {
   if (error.response) {
     return {
       data: null,
-      error: error.response.data.message || 'Error en la petición',
+      error: error.response.data.message || error.response.data.error || 'Error en la petición',
       status: error.response.status,
     };
   } else if (error.request) {

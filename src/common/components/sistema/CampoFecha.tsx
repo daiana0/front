@@ -1,5 +1,5 @@
 // src/components/sistema/CampoFecha.tsx
-import { TextField, TextFieldProps } from '@mui/material';
+import { TextField, type TextFieldProps } from '@mui/material';
 import React from 'react';
 export const CampoFecha = (props: TextFieldProps) => {
   return (

@@ -6,10 +6,14 @@ import { Topbar } from '@/common/components/sistema/Topbar';
 import { estudianteNavigation } from '@/Navigation/EstudianteNavigation';
 import { themeTokens } from '@/common/components/sistema/theme';
 import { useAuthEstudiante } from '@/features/authEstudiantes/hooks/useAuthEstudiante';
+import { PerfilEstudianteProvider } from '@/features/perfil/context/PerfilEstudianteContext';
+import { usePerfil } from '@/features/perfil/hooks/usePerfil';
+import { resolveFotoPerfilUrl } from '@/features/perfil/constants/fotoPerfil.constants';
 
-export const ProtectedLayout: React.FC = () => {
+const ProtectedLayoutContent: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuthEstudiante();
+  const { perfil } = usePerfil();
 
   const userName = user
     ? `${user.nombre} ${user.apellido}`.trim() || 'Usuario'
@@ -23,7 +27,7 @@ export const ProtectedLayout: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      window.location.href = '/estudiante/logout-success'; // o usa useNavigate
+      window.location.href = '/estudiante/logout-success';
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
@@ -41,6 +45,7 @@ export const ProtectedLayout: React.FC = () => {
         sidebarWidth={sidebarWidth}
         userName={userName}
         userRole={userRole}
+        avatarUrl={resolveFotoPerfilUrl(perfil?.foto)}
         onLogout={handleLogout}
       />
       <Box
@@ -53,6 +58,7 @@ export const ProtectedLayout: React.FC = () => {
           p: 3,
           backgroundColor: themeTokens.colors.background,
           minHeight: '100vh',
+          overflowX: 'hidden',
         }}
       >
         <Outlet />
@@ -60,3 +66,9 @@ export const ProtectedLayout: React.FC = () => {
     </Box>
   );
 };
+
+export const ProtectedLayout: React.FC = () => (
+  <PerfilEstudianteProvider>
+    <ProtectedLayoutContent />
+  </PerfilEstudianteProvider>
+);

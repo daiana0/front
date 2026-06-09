@@ -1,9 +1,8 @@
-// src/components/sistema/LayoutPagina.tsx
+// src/common/components/sistema/LayoutPagina.tsx
 import React from 'react';
 import { Container, Box } from '@mui/material';
 import { ReactNode } from 'react';
 import { themeTokens } from './theme';
-
 
 interface LayoutPaginaProps {
   children: ReactNode;

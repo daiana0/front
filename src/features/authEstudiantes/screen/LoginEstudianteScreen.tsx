@@ -1,12 +1,15 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Paper, Alert } from '@mui/material';
-import GppGoodOutlinedIcon from '@mui/icons-material/GppGoodOutlined';
+import { Box, Typography, Card, CardContent, Alert } from '@mui/material';
 import { LoginEstudianteForm } from '../components/LoginEstudianteForm';
+
 import { useAuthEstudiante } from '../hooks/useAuthEstudiante';
 import issrcLogo from '@/assets/logos/logo_color_ISSRC.svg';
-import { tokens } from '@/core/theme/theme';
+import { themeTokens } from '../../../common/components/sistema/theme';
 import type { LoginFormData } from '../dto/authEstudiante.schema';
+import { BannerSeguridad } from '../components/BannerSeguridad';
+import { estudianteRecuperarPath } from '@/Routes/estudianteRoutes';
 
 export const LoginEstudianteScreen: React.FC = () => {
   const { login, loading, error } = useAuthEstudiante();
@@ -29,121 +32,82 @@ export const LoginEstudianteScreen: React.FC = () => {
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        p: { xs: 2, sm: 3, md: 4 },
+        p: 3,
         bgcolor: 'background.default',
       }}
     >
       <Box
         sx={{
           width: '100%',
-          maxWidth: { xs: '100%', sm: 480, md: 512 },
+          maxWidth: 512,
           display: 'flex',
           flexDirection: 'column',
-          gap: { xs: 2, sm: 3 },
-          mt: { xs: 2, sm: 4, md: 0 },
+          gap: 3,
+          mt: { xs: 3, md: 6 },
         }}
       >
         {/* Logo y títulos */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: { xs: 1, sm: 2 } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
           <Box
             component="img"
             src={issrcLogo}
             alt="ISSRC"
-            sx={{
-              width: { xs: 70, sm: 90, md: 100 },
-              height: 'auto',
-              maxHeight: { xs: 47, sm: 60, md: 67 },
-            }}
+            sx={{ width: 100, height: 'auto' }}
           />
           <Typography
-            variant="h3"
+            variant="h4"
             component="h1"
-            sx={{
-              textAlign: 'center',
-              fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' },
-              fontWeight: 600,
-            }}
+            sx={{ textAlign: 'center', fontWeight: 700, color: 'primary.main' }}
           >
-            Portal de Estudiantes
+            Portal Estudiantes
           </Typography>
           <Typography
             variant="overline"
             sx={{
-              color: tokens.subtitleColor,
+              color: themeTokens.colors.textSecondary,
               textAlign: 'center',
-              fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.875rem' },
+              letterSpacing: 1,
             }}
           >
             Ingresa a tu cuenta
           </Typography>
         </Box>
 
-        <Paper
-          elevation={0}
+        {/* Tarjeta del formulario */}
+        <Card
           sx={{
             width: '100%',
             overflow: 'hidden',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0px 20px 40px 0px rgba(24,28,29,0.06)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            pt: { xs: 3, sm: 4, md: 5 },
-            pb: { xs: 2, sm: 3 },
-            px: { xs: 1, sm: 2, md: 0 },
+            borderRadius: '24px',
+            border: 'none',
+            boxShadow: '0px 20px 40px rgba(24,28,29,0.06)',
           }}
         >
-          {error && (
-            <Alert
-              severity="error"
-              sx={{
-                width: '100%',
-                maxWidth: { xs: 'calc(100% - 32px)', sm: 432 },
-                mb: 2,
-                mx: 'auto',
-              }}
-            >
-              {error}
-            </Alert>
-          )}
-
-          <LoginEstudianteForm onSubmit={handleSubmit} loading={loading} />
-
-          {/* Banner inferior */}
-          <Box
-            sx={{
-              mt: { xs: 3, sm: 4, md: 5 },
-              width: '100%',
-              bgcolor: tokens.bannerBg,
-              px: { xs: 2, sm: 3, md: 4 },
-              py: { xs: 1.5, sm: 2 },
-              display: 'flex',
-              gap: { xs: 1, sm: 2 },
-              alignItems: 'flex-start',
-            }}
-          >
-            <GppGoodOutlinedIcon
-              sx={{
-                color: tokens.bannerText,
-                fontSize: { xs: 18, sm: 20 },
-                mt: '2px',
-                flexShrink: 0,
-              }}
+          <CardContent sx={{ p: { xs: 3, sm: 5 }, pb: 0 }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error}
+              </Alert>
+            )}
+            <LoginEstudianteForm
+              onSubmit={handleSubmit}
+              loading={loading}
+              onForgotPasswordClick={() => navigate(estudianteRecuperarPath)}
             />
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                lineHeight: { xs: 1.4, sm: 1.5 },
-                color: tokens.bannerText,
-              }}
-            >
-              Este es un sistema del Instituto Superior Santa Rosa de Calamuchita. Todo acceso y
-              actividad es monitoreada y registrada según los protocolos de ciberseguridad
-              institucional.
-            </Typography>
+          </CardContent>
+
+          {/* Banner de seguridad */}
+          <Box sx={{ mt: 4 }}>
+            <BannerSeguridad />
           </Box>
-        </Paper>
+        </Card>
       </Box>
     </Box>
   );

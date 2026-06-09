@@ -1,53 +1,98 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { LoginEstudianteScreen } from '../../features/authEstudiantes/screen/LoginEstudianteScreen';
-import { ESTUDIANTE_ROUTES } from '@/Routes/estudianteRoutes';
+import { ESTUDIANTE_ROUTES, estudianteLoginPath, estudianteRestablecerExitosoPath } from '@/Routes/estudianteRoutes';
 import { ProtectedLayout } from '@/layouts/ProtectedLayout';
-import { useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
-//solo de prueba
+import { HistorialAcademicoScreen } from '@/features/estudiante/screens/HistorialAcademicoScreen';
+
+import { AdminLayout } from '../../layouts/AdminLayout';
+
+import { RecuperarContraseniaScreen } from '../../features/auth/screen/RecuperarContraseniaScreen';
+import { RestablecerContraseniaScreen } from '../../features/auth/screen/RestablecerContraseniaScreen';
+import { RestablecerSuccessScreen } from '../../features/auth/screen/RestablecerSuccessScreen';
+
+import { DashboardScreen } from '@/features/estudiante/screens/DashboardScreen';
 import { PerfilScreen } from '@/features/estudiante/screens/PerfilScreen';
 import { LegajoScreen } from '@/features/estudiante/screens/LegajoScreen';
 import { CalificacionesScreen } from '@/features/estudiante/screens/CalificacionesScreen';
-import { MesasScreen } from '@/features/estudiante/screens/MesasScreen';
+import { MesasExamenScreen } from "@/features/estudiante/screens/MesasExamenScreen";
 import { AsistenciaScreen } from '@/features/estudiante/screens/AsistenciaScreen';
 import { NotificacionesScreen } from '@/features/estudiante/screens/NotificacionesScreen';
 import { InscripcionesUcScreen } from '@/features/estudiante/screens/InscripcionesUcScreen';
-import { DashboardScreen } from '@/features/estudiante/screens/DashboardScreen';
 import { AlumnosScreen } from '../../../example-front/screen/AlumnosScreen';
-import { LogoutSuccess } from '@/common/components/sistema/LogoutSuccess';
-
-
-
+import { LogoutSuccess } from '@/common/components/sistema/LogoutSuccess'
+//import { PublicLayout } from '@/layouts/PublicLayout';
 
 export const AppRouter: React.FC = () => {
   const navigate = useNavigate();
+
   return (
     <Routes>
-      {/* Ruta pública de login */}
-      <Route path={ESTUDIANTE_ROUTES.login} element={<LoginEstudianteScreen navigate />} />
-      <Route path={ESTUDIANTE_ROUTES.logoutSuccess} element={<LogoutSuccess onLoginAgain={() => navigate('/estudiante/login')} onGoHome={() => navigate('/')} />} />
-      {/* Rutas protegidas con layout compartido */}
+      {/* ── Rutas públicas ─────────────────────────────────────────── */}
+      <Route path={ESTUDIANTE_ROUTES.login} element={<LoginEstudianteScreen />} />
+      <Route
+        path={ESTUDIANTE_ROUTES.recuperarContrasenia}
+        element={
+          <RecuperarContraseniaScreen
+            rol="ESTUDIANTE"
+            loginPath="/estudiante/login"
+            title="Recuperar contraseña"
+            subtitle="Portal estudiantes"
+          />
+        }
+      />
+      <Route
+        path={ESTUDIANTE_ROUTES.restablecerContrasenia}
+        element={
+          <RestablecerContraseniaScreen
+            loginPath={estudianteLoginPath}
+            successPath={estudianteRestablecerExitosoPath}
+          />
+        }
+      />
+      <Route
+        path={ESTUDIANTE_ROUTES.restablecerExitoso}
+        element={<RestablecerSuccessScreen loginPath={estudianteLoginPath} />}
+      />
+      <Route
+        path={ESTUDIANTE_ROUTES.logoutSuccess}
+        element={
+          <LogoutSuccess
+            onLoginAgain={() => navigate(estudianteLoginPath)}
+            onGoHome={() => navigate('/')}
+          />
+        }
+      />
+
+      {/* ── Rutas protegidas ───────────────────────────────────────── */}
       <Route element={<ProtectedRoute />}>
+
+        {/* Estudiantes */}
         <Route element={<ProtectedLayout />}>
           <Route path={ESTUDIANTE_ROUTES.dashboard} element={<DashboardScreen />} />
           <Route path={ESTUDIANTE_ROUTES.perfil} element={<PerfilScreen />} />
           <Route path={ESTUDIANTE_ROUTES.legajo} element={<LegajoScreen />} />
           <Route path={ESTUDIANTE_ROUTES.calificaciones} element={<CalificacionesScreen />} />
-          <Route path={ESTUDIANTE_ROUTES.mesas} element={<MesasScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.historialAcademico} element={<HistorialAcademicoScreen />} />
+          <Route path={ESTUDIANTE_ROUTES.mesas} element = {<MesasExamenScreen/>}/>
           <Route path={ESTUDIANTE_ROUTES.asistencia} element={<AsistenciaScreen />} />
           <Route path={ESTUDIANTE_ROUTES.notificaciones} element={<NotificacionesScreen />} />
           <Route path={ESTUDIANTE_ROUTES.inscripcionesUc} element={<InscripcionesUcScreen />} />
-          {/* <Route path="/" element={<Navigate to={ESTUDIANTE_ROUTES.dashboard} replace />} /> */}
-
-          {/* Ruta para pruebas - podria servir para Administrativos */}
+          {/* Ruta para pruebas - podría servir para Administrativos */}
           <Route path="/prueba" element={<AlumnosScreen />} />
         </Route>
-      </Route>
 
-      {/* Ruta comodín */}
-      <Route path="*" element={<Navigate to={ESTUDIANTE_ROUTES.login} replace />} />
+        {/* Administración */}
+        <Route element={<AdminLayout />}>
+          <Route path="/alumnos" element={<AlumnosScreen />} />
+          <Route path="/" element={<Navigate to="/alumnos" replace />} />
+        </Route>
+
+      </Route>
+      {/* Comodín: vuelve a la landing */}
+      <Route path="/*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

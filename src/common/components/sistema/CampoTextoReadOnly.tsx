@@ -1,4 +1,4 @@
-import { TextField, TextFieldProps, Paper } from '@mui/material';
+import { TextField, type TextFieldProps, Paper } from '@mui/material';
 import { themeTokens } from './theme';
 import React from 'react';
 
