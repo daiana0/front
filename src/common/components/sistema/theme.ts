@@ -28,7 +28,8 @@ const tokens = {
   borderRadius: {
     button: 6,
     card: 12,
-    modal: 12,
+    cardMateria:3,
+    modal: 6,
     table: 12,
     input: 6,
     paginacion: 4,
@@ -216,6 +217,7 @@ export const sistemaTheme = createTheme({
     MuiModal: {
       defaultProps: {
         disableRestoreFocus: true,
+        closeAfterTransition: true,
       },
     },
 
@@ -228,6 +230,9 @@ export const sistemaTheme = createTheme({
     },
     
     MuiMenu: {
+      defaultProps: {
+        closeAfterTransition: true,
+      },
       styleOverrides: {
         paper: {
           borderRadius: tokens.borderRadius.card,

@@ -1,5 +1,6 @@
 export {PerfilCard} from "./PerfilCard";
 export { CabeceraPagina } from "./CabeceraPagina";
+export { VistaEnConstruccion } from "./VistaEnConstruccion";
 export { BadgeEstado } from "./BadgeEstado";
 export { TablaAgrupada } from "./TablaAgrupada";
 export { CardFormulario } from "./CardFormulario";
@@ -28,3 +29,4 @@ export { BotonPDF } from "./BotonPDF";
 export { BotonExcel } from "./BotonExcel";
 export { Sidebar } from "./Sidebar";
 export { Topbar } from "./Topbar";
+export { AdminScreensStyles } from './AdminScreensStyles';

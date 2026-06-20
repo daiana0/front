@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { AUTH_TOKEN_STORAGE_KEY } from '../constants/auth.storage';
 import { getRolToken } from '@/common/utils/getRolToken';
 

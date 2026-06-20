@@ -52,6 +52,25 @@ export async function fetchPreinscripcionesPorCarreraFromApi(): Promise<FetchPre
     };
 }
 
+export interface ElegibilidadCarreras {
+    carrerasConLegajoActivo: number[];
+    carrerasConPreinscripcionActiva: number[];
+}
+
+export async function fetchElegibilidadFromApi(): Promise<ElegibilidadCarreras> {
+    const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+    if (!token) {
+        return { carrerasConLegajoActivo: [], carrerasConPreinscripcionActiva: [] };
+    }
+
+    const result = await preinscriptoRepository.getElegibilidad(token);
+    if (result.error || !result.data) {
+        return { carrerasConLegajoActivo: [], carrerasConPreinscripcionActiva: [] };
+    }
+
+    return result.data;
+}
+
 export async function migrateLegacyPreinscripcionId(): Promise<void> {
     const legacyId = localStorage.getItem(LEGACY_PRE_INSCRIPCION_ID_KEY);
     if (!legacyId) return;
@@ -106,6 +125,36 @@ export function mapPreinscripcionToFormState(data: PreinscripcionResponse): Hydr
     };
 }
 
+export function getAvisoDniEnOtrasCarreras(
+    dni: string,
+    idCarreraActual: string,
+    preinscripciones: PreinscripcionResponse[],
+    carreras: { id: number; nombre?: string; name?: string }[],
+    nombreCarreraActual?: string,
+): string | null {
+    const dniSanitized = dni.replace(/\D/g, '');
+    if (!dniSanitized || !idCarreraActual) return null;
+
+    const otras = preinscripciones.filter((p) => {
+        const idCarrera = p.idCarrera ?? (p as PreinscripcionResponse & { id_carrera?: number }).id_carrera;
+        const dniPre = (p.dni ?? '').replace(/\D/g, '');
+        return dniPre === dniSanitized && String(idCarrera) !== String(idCarreraActual);
+    });
+
+    if (otras.length === 0) return null;
+
+    const nombresOtras = otras
+        .map((p) => {
+            const id = p.idCarrera ?? (p as PreinscripcionResponse & { id_carrera?: number }).id_carrera;
+            const raw = carreras.find((c) => String(c.id) === String(id));
+            return raw?.nombre ?? raw?.name ?? `Carrera #${id}`;
+        })
+        .join(', ');
+
+    const actual = nombreCarreraActual ?? 'la carrera seleccionada';
+    return `Tu DNI ya está registrado en la preinscripción de ${nombresOtras}. Podés continuar con la inscripción a ${actual}.`;
+}
+
 export function buildTimelineFromEstado(estado: PreinscripcionResponse['estado']) {
     const year = new Date().getFullYear();
     if (estado === 'pendiente') {
@@ -120,6 +169,13 @@ export function buildTimelineFromEstado(estado: PreinscripcionResponse['estado']
             { id: 1, title: 'Preinscripción Web', subtitle: 'Completado', status: 'completed' },
             { id: 2, title: 'Legajo Digital', subtitle: 'Aprobado', status: 'completed' },
             { id: 3, title: 'Matriculación Final', subtitle: 'Pendiente', status: 'in_progress' },
+        ];
+    }
+    if (estado === 'matriculado') {
+        return [
+            { id: 1, title: 'Preinscripción Web', subtitle: 'Completado', status: 'completed' },
+            { id: 2, title: 'Legajo Digital', subtitle: 'Matriculado', status: 'completed' },
+            { id: 3, title: 'Matriculación Final', subtitle: 'Completado', status: 'completed' },
         ];
     }
     return [

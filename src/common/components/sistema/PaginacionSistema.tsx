@@ -7,6 +7,8 @@ import {
   MenuItem,
   Stack,
   Paper,
+  SxProps,
+  Theme,
 } from "@mui/material";
 import { themeTokens } from "./theme";
 import React from 'react';
@@ -28,6 +30,8 @@ interface PaginacionSistemaProps {
   mostrarSelector?: boolean;
   /** Texto personalizado (default: "Mostrando {desde}-{hasta} de {total} resultados") */
   textoInfo?: string;
+  /** Propiedades de estilo personalizadas */
+  sx?: SxProps<Theme>;
 }
 
 export const PaginacionSistema = ({
@@ -39,6 +43,7 @@ export const PaginacionSistema = ({
   opcionesPorPagina = [5, 10, 25, 50],
   mostrarSelector = true,
   textoInfo,
+  sx,
 }: PaginacionSistemaProps) => {
   const totalPaginas = Math.ceil(totalElementos / elementosPorPagina);
   const desde = (paginaActual - 1) * elementosPorPagina + 1;
@@ -54,11 +59,12 @@ export const PaginacionSistema = ({
   return (
     <Paper
       sx={{
-        p: 3,
+        py: 1.5,
+        px: 2.5,
         border: "1px solid #eef2f6",
         boxShadow: 0,
-        height: "100%",
         bgcolor: themeTokens.colors.primaryTenue,
+        ...sx,
       }}
     >
       <Box
@@ -68,9 +74,6 @@ export const PaginacionSistema = ({
           alignItems: "center",
           justifyContent: "space-between",
           gap: 2,
-          pt: 2,
-          mt: 2,
-          borderTop: `1px solid ${themeTokens.colors.border}`,
         }}
       >
         {/* Info de resultados */}

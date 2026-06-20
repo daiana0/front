@@ -10,14 +10,14 @@ interface ApiWrappedResponse<T> {
 }
 
 export const asistenciaRepository = {
-  async getAsistencia(idEstudiante: number | string): Promise<ApiResponse<AsistenciaResponse>> {
+  async getAsistencia(idEstudiante: number | string, idLegajo?: number): Promise<ApiResponse<AsistenciaResponse>> {
     try {
-      // 💡 CORREGIDO: Apuntamos al endpoint pluralizado '/asistencias/estudiante/:id'
-      // para que el controlador ejecute 'getByEstudiante' en lugar de 'getById'.
+      const params = idLegajo != null ? { idLegajo } : undefined;
       const response = await axiosClient.get<ApiWrappedResponse<AsistenciaResponse>>(
-        `/asistencias/estudiante/${idEstudiante}`
+        `/asistencias/estudiante/${idEstudiante}`,
+        { params },
       );
-      
+
       const payload = response.data?.data || (response.data as unknown as AsistenciaResponse);
       return { data: payload, error: null, status: response.status };
     } catch (error) {

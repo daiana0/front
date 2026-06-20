@@ -1,17 +1,13 @@
-// src/features/estudiante/hooks/useHistorialAcademico.ts
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { calificacionService } from "../service/calificaciones.service";
+import { useLegajoSeleccionado } from "../context/LegajoSeleccionadoContext";
 import type { HistorialAcademicoUC, HistorialAcademicoRow, EstadoCalificacion } from "../dto/calificaciones.dto";
-import { useEstudianteId } from "@/features/authEstudiantes/hooks/useEstudianteId";
 
 type AnioFiltro = number | "todos";
 
-// Transforma una UC anidada en una fila plana (con hasta 2 IE y 2 TP según orden cronológico)
 const transformUC = (uc: HistorialAcademicoUC): HistorialAcademicoRow => {
-  // Ordenar instancias por fecha
   const sorted = [...uc.instancias].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-  
+
   let parcialCount = 0;
   let tpCount = 0;
   const row: HistorialAcademicoRow = {
@@ -54,7 +50,6 @@ const transformUC = (uc: HistorialAcademicoUC): HistorialAcademicoRow => {
     }
   }
 
-  // Calcular promedio simple de todas las notas
   const todasNotas = sorted.map(i => i.nota).filter(n => n !== null && n !== undefined) as number[];
   const suma = todasNotas.reduce((acc, n) => acc + n, 0);
   row.promedio = todasNotas.length ? parseFloat((suma / todasNotas.length).toFixed(1)) : null;
@@ -63,43 +58,44 @@ const transformUC = (uc: HistorialAcademicoUC): HistorialAcademicoRow => {
 };
 
 export const useHistorialAcademico = () => {
-  const idEstudiante = useEstudianteId();
+  const { selectedLegajoId, loading: legajosLoading } = useLegajoSeleccionado();
   const [rawHistorial, setRawHistorial] = useState<HistorialAcademicoUC[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [anioSeleccionado, setAnioSeleccionado] = useState<AnioFiltro>("todos");
 
   const loadHistorial = useCallback(async () => {
-    if (idEstudiante == null) return;
+    if (selectedLegajoId == null) {
+      setRawHistorial([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const legajo = await calificacionService.getLegajoDelEstudiante(idEstudiante);
-      const data = await calificacionService.getHistorial(legajo.id);
+      const data = await calificacionService.getHistorial(selectedLegajoId);
       setRawHistorial(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al cargar el historial");
     } finally {
       setLoading(false);
     }
-  }, [idEstudiante]);
+  }, [selectedLegajoId]);
 
   useEffect(() => {
+    if (legajosLoading) return;
     loadHistorial();
-  }, [loadHistorial]);
+  }, [legajosLoading, loadHistorial]);
 
-  // Transformación a filas planas
   const historialRows = useMemo(() => {
     if (!rawHistorial.length) return [];
     return rawHistorial.map(transformUC);
   }, [rawHistorial]);
 
-  // Años disponibles (para tabs)
   const aniosDisponibles = useMemo(() => {
     return [...new Set(historialRows.map(r => r.anio))].sort();
   }, [historialRows]);
 
-  // Filtrar por año
   const historialFiltrado = useMemo(() => {
     if (anioSeleccionado === "todos") return historialRows;
     return historialRows.filter(r => r.anio === anioSeleccionado);
@@ -107,7 +103,7 @@ export const useHistorialAcademico = () => {
 
   return {
     historial: historialFiltrado,
-    loading,
+    loading: loading || legajosLoading,
     error,
     anioSeleccionado,
     setAnioSeleccionado,

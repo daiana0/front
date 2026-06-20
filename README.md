@@ -160,7 +160,7 @@ Constantes centralizadas en [`estudianteRoutes.tsx`](src/Routes/estudianteRoutes
 2. Configurar variables de entorno. Copiar [`.env.example`](.env.example) a `.env`:
 
    ```env
-   VITE_API_URL=http://localhost:4000/api/v1
+   VITE_API_URL=http://localhost:3000/api/v1
    ```
 
    Si no se define, el cliente Axios usa por defecto `http://localhost:3000/api/v1`.

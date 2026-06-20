@@ -39,7 +39,7 @@ export const TarjetaMateria = ({
   sx={{
     p: 3,
     border: `1px solid ${themeTokens.colors.border}`,
-    borderRadius: themeTokens.borderRadius.card,
+    borderRadius: themeTokens.borderRadius.cardMateria,
   }}
 >
 

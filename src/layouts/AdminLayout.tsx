@@ -1,32 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
-import { useAuth } from '../features/auth';
+import { Box } from '@mui/material';
+import { Sidebar } from '@/common/components/sistema/Sidebar';
+import { Topbar } from '@/common/components/sistema/Topbar';
+import { themeTokens } from '@/common/components/sistema/theme';
+import { adminNavigation } from '@/Navigation/AdminNavigation';
+import { useAdminAuth } from '../features/admin/hooks/useAdminAuth';
+import { adminAuthService } from '../features/admin/service/admin.service';
 
 export const AdminLayout: React.FC = () => {
-  const { logout, loading } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
+  const { logout, loading } = useAdminAuth();
+  const currentUser = adminAuthService.getCurrentUser();
+  const sidebarWidth = collapsed
+    ? themeTokens.layout.sidebar.collapsed
+    : themeTokens.layout.sidebar.expanded;
+
+  const userName = currentUser ? `${currentUser.nombre} ${currentUser.apellido}` : 'Administrador';
+  const userRole = currentUser?.rol ?? 'ADMINISTRATIVO';
 
   return (
-    <Box className="min-h-screen bg-gray-100">
-      <AppBar position="static" className="bg-indigo-600">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            SIGI Admin
-          </Typography>
-          <Button
-            color="inherit"
-            onClick={() => logout()}
-            disabled={loading}
-            startIcon={<LogoutOutlinedIcon />}
-          >
-            {loading ? 'Saliendo…' : 'Salir'}
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <Container maxWidth="lg" className="py-8">
+    <Box sx={{ display: 'flex' }}>
+      <Sidebar
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        navigation={adminNavigation}
+        title="Panel Administrativo"
+      />
+      <Topbar
+        sidebarWidth={sidebarWidth}
+        userName={userName}
+        userRole={userRole}
+        onLogout={() => logout()}
+      />
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          ml: `${sidebarWidth}px`,
+          mt: '80px',
+          transition: `margin ${themeTokens.transitions.slow}`,
+          p: 3,
+          backgroundColor: themeTokens.colors.background,
+          minHeight: '100vh',
+        }}
+      >
         <Outlet />
-      </Container>
+      </Box>
     </Box>
   );
 };

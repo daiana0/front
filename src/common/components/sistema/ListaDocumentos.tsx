@@ -8,38 +8,42 @@ interface Documento {
   id: string;
   titulo: string;
   nombreArchivo: string;
+  url?: string;
   tamaño: string;
-  observacion?: string;
   estado: "pendiente" | "validado" | "rechazado";
 }
 
 interface ListaDocumentosProps {
   titulo?: string;
   documentos: Documento[];
-  onObservacionChange?: (documentoId: string, observacion: string) => void;
   onAceptar?: (documentoId: string) => void;
   onRechazar?: (documentoId: string) => void;
+  onDeshacer?: (documentoId: string) => void;
   readonly?: boolean;
   columnas?: number;
+  labelPendiente?: string;
 }
 
 export const ListaDocumentos = ({
   titulo = "Documentación adjunta",
   documentos,
-  onObservacionChange,
   onAceptar,
   onRechazar,
+  onDeshacer,
   readonly = false,
   columnas = 2,
+  labelPendiente,
 }: ListaDocumentosProps) => {
   return (
     <Box>
-      <Typography
-        variant="h6"
-        sx={{ fontWeight: 600, color: "primary.main", mb: 2 }}
-      >
-        {titulo}
-      </Typography>
+      {titulo && (
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, color: "primary.main", mb: 2 }}
+        >
+          {titulo}
+        </Typography>
+      )}
 
       <Grid container spacing={2}>
         {documentos.map((doc) => (
@@ -56,12 +60,13 @@ export const ListaDocumentos = ({
               titulo={doc.titulo}
               nombreArchivo={doc.nombreArchivo}
               tamaño={doc.tamaño}
-              observacion={doc.observacion}
+              url={doc.url}
               estado={doc.estado}
-              onObservacionChange={(obs) => onObservacionChange?.(doc.id, obs)}
               onAceptar={() => onAceptar?.(doc.id)}
               onRechazar={() => onRechazar?.(doc.id)}
+              onDeshacer={() => onDeshacer?.(doc.id)}
               readonly={readonly}
+              labelPendiente={labelPendiente}
             />
           </Grid>
         ))}

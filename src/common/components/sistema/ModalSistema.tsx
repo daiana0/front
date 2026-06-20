@@ -1,15 +1,15 @@
 import { Modal, Box, Fade, Backdrop } from '@mui/material';
 import { themeTokens } from './theme';
-import React from 'react';
+import * as React from 'react';
 
 interface ModalSistemaProps {
   open: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export const ModalSistema = ({ open, onClose, children, maxWidth = 'md' }: ModalSistemaProps) => {
+export const ModalSistema: React.FC<ModalSistemaProps> = ({ open, onClose, children, maxWidth = 'md' }) => {
   const widthMap = { xs: 400, sm: 600, md: 800, lg: 1100, xl: 1400 };
 
   return (
@@ -21,9 +21,9 @@ export const ModalSistema = ({ open, onClose, children, maxWidth = 'md' }: Modal
       slotProps={{
         backdrop: {
           sx: {
-            backgroundColor: themeTokens.colors.primary,
-            opacity: '0.6 !important',
-            backdropFilter: 'blur(8px)',
+            backgroundColor: `${themeTokens.colors.primary}4D`, // Usamos canal alfa (30% de opacidad) para que el blur funcione correctamente
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
           },
           timeout: 500,
         },

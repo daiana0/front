@@ -46,17 +46,19 @@ const HistorialTabContent = ({ data }: { data: HistorialAcademicoRow[] }) => {
   const filteredData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
     if (!search) return data;
-    return data.filter(item => item.nombre.toLowerCase().includes(search.toLowerCase()));
+    return data.filter(item => item.nombre.toLowerCase().split(/[\s,]+/).some((w) => w.startsWith(search.toLowerCase())));
   }, [data, search]);
 
   return (
     <Box>
       <Paper
+        elevation={0}
         sx={{
           p: 2,
           mb: 3,
+          backgroundColor: themeTokens.colors.surface,
           border: `1px solid ${themeTokens.colors.border}`,
-          borderRadius: themeTokens.borderRadius.card,
+          borderRadius: `${themeTokens.borderRadius.card}px`,
         }}
       >
         <CampoBusqueda

@@ -19,8 +19,8 @@ export const LoginEstudianteScreen: React.FC = () => {
     try {
       await login(data as any);
       navigate('/estudiante/dashboard', { replace: true });
-    } catch {
-      console.error('Error al iniciar sesión:', error);
+    } catch (err) {
+      console.error('Error al iniciar sesión:', err);
     }
   };
 

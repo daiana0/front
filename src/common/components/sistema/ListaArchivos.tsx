@@ -10,9 +10,9 @@ import {
   ListItemSecondaryAction,
   IconButton,
   TextField,
-  Divider,
-  Chip
+  Divider
 } from '@mui/material';
+import { BadgeEstado } from './BadgeEstado';
 import { 
   Description as FileIcon, 
   Email as EmailIcon,
@@ -47,14 +47,14 @@ const EstadoChip = ({ estado }: { estado?: Archivo['estado'] }) => {
   if (!estado) return null;
   
   const config = {
-    pendiente: { label: 'Pendiente', color: 'warning' as const, icon: <PendienteIcon fontSize="small" /> },
-    aprobado: { label: 'Aprobado', color: 'success' as const, icon: <AprobadoIcon fontSize="small" /> },
-    rechazado: { label: 'Rechazado', color: 'error' as const, icon: <RechazadoIcon fontSize="small" /> }
+    pendiente: { icon: <PendienteIcon fontSize="small" /> },
+    aprobado: { icon: <AprobadoIcon fontSize="small" /> },
+    rechazado: { icon: <RechazadoIcon fontSize="small" /> }
   };
   
-  const { label, color, icon } = config[estado];
+  const icon = config[estado]?.icon;
   
-  return <Chip icon={icon} label={label} size="small" color={color} />;
+  return <BadgeEstado estado={estado} icon={icon} />;
 };
 
 export const ListaArchivos = ({

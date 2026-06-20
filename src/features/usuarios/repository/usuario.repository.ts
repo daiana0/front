@@ -116,7 +116,12 @@ export const createPreinscripcionRepository = {
                     Authorization: `Bearer ${token}`
                 }
             });
-            return { data: response.data.data, error: null, status: response.status };
+            return {
+                data: response.data.data,
+                error: null,
+                status: response.status,
+                aviso: response.data.aviso as string | undefined,
+            };
         } catch (error) {
             return handleApiError(error);
         }
@@ -140,6 +145,25 @@ export const preinscriptoRepository = {
     async getById(id: number, token: string): Promise<ApiResponse<PreinscripcionResponse>> {
         try {
             const response = await axiosClient.get(`/preinscriptos/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            return { data: response.data.data, error: null, status: response.status };
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    async getElegibilidad(token: string): Promise<ApiResponse<{
+        carrerasConLegajoActivo: number[];
+        carrerasConPreinscripcionActiva: number[];
+    }>> {
+        try {
+            const response = await axiosClient.get<ApiWrappedResponse<{
+                carrerasConLegajoActivo: number[];
+                carrerasConPreinscripcionActiva: number[];
+            }>>('/preinscriptos/elegibilidad', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

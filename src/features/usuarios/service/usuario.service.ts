@@ -5,6 +5,7 @@ import { carreraOptionsRepository, createPreinscripcionRepository, usuarioReposi
 import type { ApiResponse } from '@/core/api/api.handler';
 import { AUTH_TOKEN_STORAGE_KEY } from '@/core/constants/auth.storage';
 import type { UsuarioPreinscripcion } from '../dto/usuarioPreinscripcion.dto';
+import type { PreinscripcionResponse } from '../dto/PreinscripcionResponse ';
 
 
 export const usuarioService = {
@@ -74,7 +75,9 @@ export const getDataCarrerasService = async () => {
 };
 
 //crear servicio para crear preisncripcion
-export const createPreinscripcionService = async (body: UsuarioPreinscripcion) => {
+export const createPreinscripcionService = async (
+    body: UsuarioPreinscripcion,
+): Promise<ApiResponse<PreinscripcionResponse> & { aviso?: string }> => {
     const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
     if (!token) {
         return { data: null, error: 'No token found', status: 401 };

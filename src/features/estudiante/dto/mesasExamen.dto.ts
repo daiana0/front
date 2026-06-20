@@ -29,8 +29,12 @@ export interface MesaResultadoResponse {
   id: number;
   materia: string;
   fecha: string;
+  turno?: string;
   condicion: 'REGULAR' | 'LIBRE';
   nota: number;
+  notaOral?: number;
+  notaEscrita?: number;
+  notaFinal?: number;
   resultado: 'APROBADO' | 'DESAPROBADO' | 'AUSENTE';
 }
 

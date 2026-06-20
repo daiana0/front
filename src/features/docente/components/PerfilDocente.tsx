@@ -97,7 +97,7 @@ function mapProfileToForm(profile: IDocentePerfilCompleto): IPerfilForm {
 export default function PerfilDocente() {
 
     // ── Datos remotos vía hook ───────────────────────────────────────────────
-    const { profile, isLoading, error } = useTeacherProfile();
+    const { profile, isLoading, error, updating, actualizarPerfil, subirFotoDocente } = useTeacherProfile();
 
     // console.log('[PerfilDocente] profile:', profile); // descomenta para debug
 
@@ -124,7 +124,7 @@ export default function PerfilDocente() {
         );
     }
 
-    if (error) {
+    if (error && !profile) {
         return (
             <Box sx={{ p: 4 }}>
                 <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
@@ -141,11 +141,24 @@ export default function PerfilDocente() {
             setPerfil((prev) => ({ ...prev, [campo]: e.target.value }));
         };
 
-    const handleGuardar = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleGuardar = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // TODO: conectar con docenteRepository.actualizarPerfil() cuando el endpoint esté disponible
-        console.info('Perfil actualizado (pendiente endpoint):', perfil);
-        setOpenSnackbar(true);
+        
+        const updateData: any = {
+            email: perfil.email,
+            domicilio: perfil.domicilio,
+            telefono: perfil.telefono,
+        };
+
+        if (perfil.contrasena && perfil.contrasena.trim() !== '') {
+            updateData.contrasenia = perfil.contrasena;
+        }
+
+        const success = await actualizarPerfil(updateData);
+        if (success) {
+            setOpenSnackbar(true);
+            setPerfil(prev => ({ ...prev, contrasena: '' }));
+        }
     };
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -175,6 +188,13 @@ export default function PerfilDocente() {
 
             {/* ② Tarjeta hero del perfil */}
             <Box sx={{ mb: 4 }}>
+                {error && profile && (
+                    <Box sx={{ mb: 2 }}>
+                        <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
+                            {error}
+                        </Alert>
+                    </Box>
+                )}
                 <PerfilCard
                     nombre={`${perfil.nombre} ${perfil.apellido}`}
                     rol={`${perfil.profesion} · ${perfil.especialidad}`}
@@ -182,6 +202,8 @@ export default function PerfilDocente() {
                     imagenUrl={perfil.avatar}
                     tipo="docente"
                     editable
+                    onFileSelected={subirFotoDocente}
+                    uploading={updating}
                 />
             </Box>
 

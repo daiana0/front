@@ -8,8 +8,9 @@ import React, {
 } from 'react';
 import { perfilService } from '../service/perfil.service';
 import { fotoPerfilService } from '../service/fotoPerfil.service';
-import type { PerfilResponse, UpdatePerfilDto, DatosAcademicos } from '../dto/perfil.dto';
 import { useEstudianteId } from '@/features/authEstudiantes/hooks/useEstudianteId';
+import { useLegajoSeleccionado } from '@/features/estudiante/context/LegajoSeleccionadoContext';
+import type { PerfilResponse, UpdatePerfilDto, DatosAcademicos } from '../dto/perfil.dto';
 
 interface PerfilEstudianteContextValue {
   perfil: PerfilResponse | null;
@@ -49,24 +50,39 @@ export const PerfilEstudianteProvider: React.FC<{ children: ReactNode }> = ({ ch
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const idEstudiante = useEstudianteId();
+  const { selectedLegajo, loading: legajosLoading } = useLegajoSeleccionado();
+
+  const syncDatosAcademicos = useCallback((legajo: typeof selectedLegajo): DatosAcademicos => {
+    if (!legajo) {
+      return { numeroLegajo: null, carrera: null, plan: null, modalidad: null };
+    }
+    const carrera = legajo.planEstudio?.carrera;
+    return {
+      numeroLegajo: legajo.numeroLegajo,
+      carrera: carrera?.nombre ?? null,
+      plan: legajo.planEstudio?.version ?? null,
+      modalidad: carrera?.tipo === 'permanente' ? 'Presencial' : carrera ? 'A término' : null,
+    };
+  }, []);
 
   const loadProfile = useCallback(async () => {
     if (idEstudiante == null) return;
     setLoading(true);
     setError(null);
     try {
-      const [data, academicos] = await Promise.all([
-        perfilService.getProfile(idEstudiante),
-        perfilService.getDatosAcademicos(idEstudiante),
-      ]);
+      const data = await perfilService.getProfile(idEstudiante);
       setPerfil(data);
-      setDatosAcademicos(academicos);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al cargar el perfil');
     } finally {
       setLoading(false);
     }
   }, [idEstudiante]);
+
+  useEffect(() => {
+    if (legajosLoading) return;
+    setDatosAcademicos(syncDatosAcademicos(selectedLegajo));
+  }, [selectedLegajo, legajosLoading, syncDatosAcademicos]);
 
   const updateProfile = useCallback(
     async (updates: UpdatePerfilDto) => {
@@ -136,7 +152,7 @@ export const PerfilEstudianteProvider: React.FC<{ children: ReactNode }> = ({ ch
       value={{
         perfil,
         datosAcademicos,
-        loading,
+        loading: loading || legajosLoading,
         saving,
         uploadingFoto,
         error,

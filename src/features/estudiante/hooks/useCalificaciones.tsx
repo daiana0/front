@@ -1,20 +1,17 @@
-import { useState, useEffect, useCallback,useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { calificacionService } from "../service/calificaciones.service";
+import { useLegajoSeleccionado } from "../context/LegajoSeleccionadoContext";
 import type {
   UnidadCurricularResumen,
   InstanciaEvaluativaDetalle,
   ResumenAcademicoDTO,
   CalificacionesFilter,
 } from "../dto/calificaciones.dto";
-import { useEstudianteId } from "@/features/authEstudiantes/hooks/useEstudianteId";
 
 export const useCalificaciones = () => {
-  const idEstudiante = useEstudianteId();
-  const [legajoId, setLegajoId] = useState<number | null>(null);
+  const { selectedLegajoId, loading: legajosLoading } = useLegajoSeleccionado();
   const [unidades, setUnidades] = useState<UnidadCurricularResumen[]>([]);
-  const [instancias, setInstancias] = useState<InstanciaEvaluativaDetalle[]>(
-    [],
-  );
+  const [instancias, setInstancias] = useState<InstanciaEvaluativaDetalle[]>([]);
   const [resumen, setResumen] = useState<ResumenAcademicoDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,18 +20,6 @@ export const useCalificaciones = () => {
     tipoInstancia: "todos",
     estado: "todos",
   });
-
-  const loadLegajo = useCallback(async () => {
-    if (idEstudiante == null) return;
-    try {
-      const legajo = await calificacionService.getLegajoDelEstudiante(idEstudiante);
-      setLegajoId(legajo.id);
-      return legajo.id;
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al cargar legajo");
-      return null;
-    }
-  }, [idEstudiante]);
 
   const loadAll = useCallback(
     async (legajo: number) => {
@@ -63,17 +48,16 @@ export const useCalificaciones = () => {
   );
 
   useEffect(() => {
-    let ignore = false;
-    (async () => {
-      const legajoIdResult = await loadLegajo();
-      if (!ignore && legajoIdResult) {
-        await loadAll(legajoIdResult);
-      }
-    })();
-    return () => {
-      ignore = true;
-    };
-  }, [loadLegajo, loadAll]);
+    if (legajosLoading) return;
+    if (selectedLegajoId == null) {
+      setUnidades([]);
+      setInstancias([]);
+      setResumen(null);
+      setLoading(false);
+      return;
+    }
+    loadAll(selectedLegajoId);
+  }, [selectedLegajoId, legajosLoading, loadAll]);
 
   const instanciasFiltradas = useMemo(() => {
     let result = [...instancias];
@@ -81,11 +65,11 @@ export const useCalificaciones = () => {
     if (filters.busqueda && filters.busqueda.trim() !== "") {
       const searchLower = filters.busqueda.toLowerCase();
       result = result.filter(inst =>
-        inst.nombreMateria?.toLowerCase().includes(searchLower)
+        inst.nombreMateria?.toLowerCase().split(/[\s,]+/).some((w) => w.startsWith(searchLower))
       );
     }
 
-  if (filters.estado && filters.estado !== "todos") {
+    if (filters.estado && filters.estado !== "todos") {
       result = result.filter(inst => {
         if (filters.estado === "aprobado") return inst.nota >= 4;
         if (filters.estado === "desaprobado") return inst.nota < 4;
@@ -97,8 +81,8 @@ export const useCalificaciones = () => {
   }, [instancias, filters.busqueda, filters.estado]);
 
   const refetch = useCallback(() => {
-    if (legajoId) loadAll(legajoId);
-  }, [legajoId, loadAll]);
+    if (selectedLegajoId) loadAll(selectedLegajoId);
+  }, [selectedLegajoId, loadAll]);
 
   const updateFilters = useCallback(
     (newFilters: Partial<CalificacionesFilter>) => {
@@ -109,9 +93,9 @@ export const useCalificaciones = () => {
 
   return {
     unidades,
-    instancias:instanciasFiltradas,
+    instancias: instanciasFiltradas,
     resumen,
-    loading,
+    loading: loading || legajosLoading,
     error,
     refetch,
     filters,

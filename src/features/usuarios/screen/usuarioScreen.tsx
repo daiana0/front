@@ -6,13 +6,15 @@ import {
     getPreinscripcionByIdService,
     migrateLegacyPreinscripcionId,
     fetchPreinscripcionesPorCarreraFromApi,
+    fetchElegibilidadFromApi,
+    getAvisoDniEnOtrasCarreras,
     mapPreinscripcionToFormState,
     buildTimelineFromEstado,
     LEGACY_PRE_INSCRIPCION_ID_KEY,
     type PreinscripcionesPorCarrera,
 } from '@/features/usuarios/service/user.preinsc.service';
 import type { PreinscripcionResponse } from '@/features/usuarios/dto/PreinscripcionResponse ';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     ThemeProvider,
     Box,
@@ -61,6 +63,24 @@ import { uploadArchivoService } from '@/features/usuarios/service/archivos.servi
 import { createPreinscripcionService } from '@/features/usuarios/service/usuario.service';
 import type { UsuarioPreinscripcion } from '@/features/usuarios/dto/usuarioPreinscripcion.dto';
 
+const PRE_UPLOADED_URLS_KEY = 'pre_uploaded_urls';
+
+const loadUploadedUrlsFromStorage = (): Record<string, string> => {
+    try {
+        const raw = localStorage.getItem(PRE_UPLOADED_URLS_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch {
+        return {};
+    }
+};
+
+const serializeDocsForStorage = (docs: DocumentItem[]) =>
+    docs.map((u) => ({
+        id: u.id,
+        status: u.status,
+        fileName: u.fileName,
+        fileSize: u.fileSize,
+    }));
 
 export const UsuarioScreen = () => {
     // Cambiamos el valor inicial a cadena vacía para coincidir con la opción "sin selección" (evita warning de MUI)
@@ -71,6 +91,8 @@ export const UsuarioScreen = () => {
     const [uploadingDocs, setUploadingDocs] = useState<Set<string>>(new Set());
     const payload = getDataByToken();
     const [preinscripcionesPorCarrera, setPreinscripcionesPorCarrera] = useState<PreinscripcionesPorCarrera>({});
+    const [misPreinscripciones, setMisPreinscripciones] = useState<PreinscripcionResponse[]>([]);
+    const [carrerasConLegajoActivo, setCarrerasConLegajoActivo] = useState<number[]>([]);
 
     // Recuperar timelineSteps guardado, o usar el valor inicial
     const initialTimeline = () => {
@@ -127,6 +149,9 @@ export const UsuarioScreen = () => {
             ?? '';
     };
 
+    const isCareerBlockedByLegajo = (careerId: string) =>
+        carrerasConLegajoActivo.includes(Number(careerId));
+
     const isFormLocked = Boolean(career && preinscripcionesPorCarrera[String(career)]);
 
     const applyHydratedPreinscripcion = (data: PreinscripcionResponse) => {
@@ -144,8 +169,14 @@ export const UsuarioScreen = () => {
         }
     };
 
+    const persistDocsDraft = (docs: DocumentItem[], urls: Record<string, string>) => {
+        localStorage.setItem('pre_docs', JSON.stringify(serializeDocsForStorage(docs)));
+        localStorage.setItem(PRE_UPLOADED_URLS_KEY, JSON.stringify(urls));
+    };
+
     const resetDocumentsForEditableCareer = () => {
-        setUploadedUrls({});
+        const savedUrls = loadUploadedUrlsFromStorage();
+        setUploadedUrls(savedUrls);
         setDocuments(DOCUMENT_TEMPLATES.map(d => ({ ...d })));
         const savedDocs = localStorage.getItem('pre_docs');
         if (savedDocs) {
@@ -163,6 +194,12 @@ export const UsuarioScreen = () => {
 
     const handleCareerChange = (newCareerId: string) => {
         const normalizedCareerId = String(newCareerId);
+        if (isCareerBlockedByLegajo(normalizedCareerId)) {
+            setToastMessage('Ya estás cursando esta carrera. No podés preinscribirte nuevamente.');
+            setToastSeverity('warning');
+            setToastOpen(true);
+            return;
+        }
         setCareer(normalizedCareerId);
         const selectedCareerName = getCareerLabel(normalizedCareerId);
         const preinscId = preinscripcionesPorCarrera[normalizedCareerId];
@@ -203,6 +240,8 @@ export const UsuarioScreen = () => {
                 console.error(e);
             }
         }
+
+        setUploadedUrls(loadUploadedUrlsFromStorage());
 
         const hadDraft = Boolean(localStorage.getItem('pre_career') || savedData);
         if (hadDraft) {
@@ -253,20 +292,27 @@ export const UsuarioScreen = () => {
                 setCarreras(carrerasData);
 
                 migrateLegacyPreinscripcionId()
-                    .then(() => fetchPreinscripcionesPorCarreraFromApi())
-                    .then(({ map: syncedMap }) => {
-                        setPreinscripcionesPorCarrera(syncedMap);
+                    .then(() => Promise.all([
+                        fetchPreinscripcionesPorCarreraFromApi(),
+                        fetchElegibilidadFromApi(),
+                    ]))
+                    .then(([synced, elegibilidad]) => {
+                        setPreinscripcionesPorCarrera(synced.map);
+                        setMisPreinscripciones(synced.preinscripciones);
+                        setCarrerasConLegajoActivo(elegibilidad.carrerasConLegajoActivo);
 
                         const savedCareer = localStorage.getItem('pre_career');
                         if (savedCareer) {
                             const normalizedSavedCareer = String(savedCareer);
-                            if (!carrerasData.some(c => String(c.id) === normalizedSavedCareer)) {
+                            const carreraInvalida = !carrerasData.some(c => String(c.id) === normalizedSavedCareer)
+                                || elegibilidad.carrerasConLegajoActivo.includes(Number(normalizedSavedCareer));
+                            if (carreraInvalida) {
                                 localStorage.removeItem('pre_career');
                                 setCareer('');
                                 applyDraftFromLocalStorage();
                             } else {
                                 setCareer(normalizedSavedCareer);
-                                const preinscId = syncedMap[normalizedSavedCareer];
+                                const preinscId = synced.map[normalizedSavedCareer];
                                 if (preinscId) {
                                     loadPreinscripcionForCareer(normalizedSavedCareer, preinscId);
                                 } else {
@@ -299,6 +345,24 @@ export const UsuarioScreen = () => {
         return doc.requiredForCareers.includes(career);
     });
 
+    const avisoDniOtrasCarreras = useMemo(
+        () => getAvisoDniEnOtrasCarreras(
+            personalData.dni,
+            career,
+            misPreinscripciones,
+            carreras,
+            getCareerLabel(career),
+        ),
+        [personalData.dni, career, misPreinscripciones, carreras, CAREER_OPTIONS],
+    );
+
+    const syncPreinscripcionesState = async (result: Awaited<ReturnType<typeof fetchPreinscripcionesPorCarreraFromApi>>) => {
+        setPreinscripcionesPorCarrera(result.map);
+        setMisPreinscripciones(result.preinscripciones);
+        const elegibilidad = await fetchElegibilidadFromApi();
+        setCarrerasConLegajoActivo(elegibilidad.carrerasConLegajoActivo);
+    };
+
 
 
     // Handle input field changes
@@ -319,12 +383,7 @@ export const UsuarioScreen = () => {
         fileInputsRef.current[docId]?.click();
     };
 
-    const handleRealFileChange = async (docId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        if (isFormLocked) return;
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Validaciones (opcionales, ya las hace el backend pero mejoramos UX)
+    const uploadFileForDoc = async (docId: string, file: File) => {
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
         if (!allowedTypes.includes(file.type)) {
             setToastMessage('Formato de archivo no soportado. Solo JPG, PNG y PDF.');
@@ -339,12 +398,11 @@ export const UsuarioScreen = () => {
             return;
         }
 
-        // Pasar a estado "subiendo"
         setDocuments(prev => prev.map(doc => {
             if (doc.id === docId) {
                 return {
                     ...doc,
-                    status: 'uploading',
+                    status: 'uploading' as DocumentStatus,
                     fileName: file.name,
                     fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
                 };
@@ -361,38 +419,36 @@ export const UsuarioScreen = () => {
 
             const fileUrl: string = result.data.url;
 
-            // Almacenar la URL
-            setUploadedUrls(prev => ({ ...prev, [docId]: fileUrl }));
-
-            // Marcar como completado y guardar en localStorage
-            setDocuments(prev => {
-                const updated = prev.map(doc => {
-                    if (doc.id === docId) return { ...doc, status: 'completed' as DocumentStatus };
-                    return doc;
+            setUploadedUrls(prev => {
+                const nextUrls = { ...prev, [docId]: fileUrl };
+                setDocuments(docPrev => {
+                    const updated = docPrev.map(doc => {
+                        if (doc.id === docId) return { ...doc, status: 'completed' as DocumentStatus };
+                        return doc;
+                    });
+                    persistDocsDraft(updated, nextUrls);
+                    return updated;
                 });
-                localStorage.setItem('pre_docs', JSON.stringify(updated.map(u => ({
-                    id: u.id,
-                    status: u.status,
-                    fileName: u.fileName,
-                    fileSize: u.fileSize,
-                }))));
-                return updated;
+                return nextUrls;
             });
 
             setToastMessage(`✓ Archivo guardado correctamente: ${file.name}`);
             setToastSeverity('success');
         } catch (err: any) {
-            // Revertir en caso de error
-            setDocuments(prev => prev.map(doc => {
-                if (doc.id === docId) {
-                    return { ...doc, status: 'pending', fileName: undefined, fileSize: undefined };
-                }
-                return doc;
-            }));
-            setUploadedUrls(prev => {
-                const next = { ...prev };
-                delete next[docId];
-                return next;
+            setDocuments(prev => {
+                const updated = prev.map(doc => {
+                    if (doc.id === docId) {
+                        return { ...doc, status: 'pending', fileName: undefined, fileSize: undefined };
+                    }
+                    return doc;
+                });
+                setUploadedUrls(urlPrev => {
+                    const next = { ...urlPrev };
+                    delete next[docId];
+                    persistDocsDraft(updated, next);
+                    return next;
+                });
+                return updated;
             });
             setToastMessage(`Error al subir el archivo: ${err.message}`);
             setToastSeverity('error');
@@ -406,48 +462,12 @@ export const UsuarioScreen = () => {
         }
     };
 
-    const executeUploadSimulation = (docId: string, customFileName: string, sizeInBytes: number) => {
-        // Map internal document state to uploading
-        setDocuments(prev => prev.map(doc => {
-            if (doc.id === docId) {
-                return {
-                    ...doc,
-                    status: 'uploading',
-                    fileName: customFileName,
-                    fileSize: `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`
-                };
-            }
-            return doc;
-        }));
-
-        // Trigger fake progress completed after 1.2s
-        setTimeout(() => {
-            setDocuments(prev => {
-                const updated = prev.map(doc => {
-                    if (doc.id === docId) {
-                        return {
-                            ...doc,
-                            status: 'completed' as DocumentStatus
-                        };
-                    }
-                    return doc;
-                });
-
-                // Save auto backup
-                localStorage.setItem('pre_docs', JSON.stringify(updated.map(u => ({
-                    id: u.id,
-                    status: u.status,
-                    fileName: u.fileName,
-                    fileSize: u.fileSize
-                }))));
-
-                return updated;
-            });
-
-            setToastMessage(`✓ Archivo guardado correctamente: ${customFileName}`);
-            setToastSeverity('success');
-            setToastOpen(true);
-        }, 1200);
+    const handleRealFileChange = async (docId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isFormLocked) return;
+        const file = e.target.files?.[0];
+        if (!file) return;
+        await uploadFileForDoc(docId, file);
+        e.target.value = '';
     };
 
     // Drag and Drop simulation handlers
@@ -462,13 +482,13 @@ export const UsuarioScreen = () => {
         setDragActiveId(null);
     };
 
-    const handleDrop = (e: React.DragEvent, docId: string) => {
+    const handleDrop = async (e: React.DragEvent, docId: string) => {
         if (isFormLocked) return;
         e.preventDefault();
         setDragActiveId(null);
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            executeUploadSimulation(docId, files[0].name, files[0].size);
+            await uploadFileForDoc(docId, files[0]);
         }
     };
 
@@ -482,16 +502,11 @@ export const UsuarioScreen = () => {
                 }
                 return doc;
             });
-            localStorage.setItem('pre_docs', JSON.stringify(updated.map(u => ({
-                id: u.id, status: u.status, fileName: u.fileName, fileSize: u.fileSize
-            }))));
+            const nextUrls = { ...uploadedUrls };
+            delete nextUrls[docId];
+            persistDocsDraft(updated, nextUrls);
+            setUploadedUrls(nextUrls);
             return updated;
-        });
-        // Limpiar URL
-        setUploadedUrls(prev => {
-            const next = { ...prev };
-            delete next[docId];
-            return next;
         });
         setToastMessage('Archivo eliminado.');
         setToastSeverity('info');
@@ -509,12 +524,7 @@ export const UsuarioScreen = () => {
                 localStorage.removeItem('pre_career');
             }
             localStorage.setItem('pre_persona', JSON.stringify(personalData));
-            localStorage.setItem('pre_docs', JSON.stringify(documents.map(u => ({
-                id: u.id,
-                status: u.status,
-                fileName: u.fileName,
-                fileSize: u.fileSize
-            }))));
+            persistDocsDraft(documents, uploadedUrls);
             setIsSavingDraft(false);
             setToastMessage('✓ El estado de tu preinscripción ha sido guardado como borrador localmente.');
             setToastSeverity('success');
@@ -523,11 +533,14 @@ export const UsuarioScreen = () => {
     };
 
     const buildPreinscripcionBody = (): UsuarioPreinscripcion | null => {
+        const dniSanitized = personalData.dni.replace(/\D/g, '');
+        if (!dniSanitized) return null;
+
         const body: UsuarioPreinscripcion = {
             idCarrera: Number(career),
             idUsuario: Number(payload?.id),
             fechaInscripcion: new Date().toISOString().split('T')[0],
-            dni: personalData.dni.trim(),
+            dni: dniSanitized,
             domicilio: personalData.direccion.trim(),
             telefono: personalData.telefono.trim(),
             cus: '',
@@ -566,15 +579,29 @@ export const UsuarioScreen = () => {
         if (!personalData.apellido.trim()) missingFields.push('Apellido');
         if (!personalData.dni.trim()) missingFields.push('DNI');
         if (!personalData.email.trim()) missingFields.push('Email');
+        if (!personalData.direccion.trim()) missingFields.push('Domicilio');
+
+        const dniSanitized = personalData.dni.replace(/\D/g, '');
+        if (personalData.dni.trim() && !dniSanitized) {
+            setToastMessage('El DNI debe contener únicamente números.');
+            setToastSeverity('warning');
+            setToastOpen(true);
+            return;
+        }
 
         const missingDocs = activeDocumentsList.filter(
-            doc => doc.required && doc.status !== 'completed'
+            doc => doc.required && (doc.status !== 'completed' || !uploadedUrls[doc.id])
         );
 
         if (missingFields.length > 0 || missingDocs.length > 0) {
             let warnMsg = 'Falta completar campos requeridos: ';
             if (missingFields.length > 0) warnMsg += `${missingFields.join(', ')}. `;
-            if (missingDocs.length > 0) warnMsg += `Tenés ${missingDocs.length} documento(s) obligatorio(s) sin adjuntar (*).`;
+            if (missingDocs.length > 0) {
+                const sinSubir = missingDocs.some(doc => doc.status === 'completed' && !uploadedUrls[doc.id]);
+                warnMsg += sinSubir
+                    ? 'Hay documento(s) marcados como adjuntos pero no subidos al servidor. Volvé a cargarlos.'
+                    : `Tenés ${missingDocs.length} documento(s) obligatorio(s) sin adjuntar (*).`;
+            }
             setToastMessage(warnMsg);
             setToastSeverity('warning');
             setToastOpen(true);
@@ -583,7 +610,7 @@ export const UsuarioScreen = () => {
 
         const body = buildPreinscripcionBody();
         if (!body) {
-            setToastMessage('Faltan archivos requeridos (analítico, partida, foto, CUS, ISA).');
+            setToastMessage('Faltan archivos por subir al servidor (analítico, partida, foto, CUS, ISA).');
             setToastSeverity('warning');
             setToastOpen(true);
             return;
@@ -606,15 +633,28 @@ export const UsuarioScreen = () => {
         try {
             const result = await createPreinscripcionService(body);
 
+            if (result.status === 422) {
+                setToastMessage(result.error || 'No se pudo validar los datos de la preinscripción.');
+                setToastSeverity('error');
+                return;
+            }
+
             if (result.status === 409) {
                 setConfirmDialogOpen(false);
+                const msg = result.error ?? '';
+                const isDniMismaCarrera = msg.toLowerCase().includes('con este dni para esta carrera');
+                if (isDniMismaCarrera) {
+                    setToastMessage(msg);
+                    setToastSeverity('error');
+                    return;
+                }
                 const refreshed = await fetchPreinscripcionesPorCarreraFromApi();
-                setPreinscripcionesPorCarrera(refreshed.map);
+                await syncPreinscripcionesState(refreshed);
                 const existingId = refreshed.map[String(career)];
                 if (existingId) {
                     await loadPreinscripcionForCareer(String(career), existingId);
                 }
-                setToastMessage('Ya tenés una preinscripción activa para esta carrera. Los datos están bloqueados en solo lectura.');
+                setToastMessage(msg || 'Ya tenés una preinscripción activa para esta carrera. Los datos están bloqueados en solo lectura.');
                 setToastSeverity('warning');
                 return;
             }
@@ -624,7 +664,7 @@ export const UsuarioScreen = () => {
             const preinscripcionCreada = result.data as PreinscripcionResponse | undefined;
             if (preinscripcionCreada?.id) {
                 const refreshed = await fetchPreinscripcionesPorCarreraFromApi();
-                setPreinscripcionesPorCarrera(refreshed.map);
+                await syncPreinscripcionesState(refreshed);
                 applyHydratedPreinscripcion(preinscripcionCreada);
             } else {
                 setTimelineSteps([
@@ -636,11 +676,17 @@ export const UsuarioScreen = () => {
 
             setConfirmDialogOpen(false);
             setSubmitDialogOpen(true);
-            setToastMessage('✓ Preinscripción enviada con éxito. Guardá tu comprobante.');
-            setToastSeverity('success');
+            const avisoApi = result.aviso;
+            setToastMessage(
+                avisoApi
+                    ? `✓ Preinscripción enviada con éxito. ${avisoApi}`
+                    : '✓ Preinscripción enviada con éxito. Guardá tu comprobante.',
+            );
+            setToastSeverity(avisoApi ? 'info' : 'success');
 
             localStorage.removeItem('pre_persona');
             localStorage.removeItem('pre_docs');
+            localStorage.removeItem(PRE_UPLOADED_URLS_KEY);
             localStorage.setItem('pre_career', String(career));
         } catch (err: any) {
             setToastMessage(`Error al enviar la preinscripción: ${err.message}`);
@@ -856,11 +902,20 @@ export const UsuarioScreen = () => {
                                                 <MenuItem value="" disabled>
                                                     <em>Seleccione una carrera</em>
                                                 </MenuItem>
-                                                {CAREER_OPTIONS.map((item) => (
-                                                    <MenuItem key={item.id} value={String(item.id)} sx={{ fontFamily: '"Hanken Grotesk", sans-serif', fontSize: '14px', paddingY: '10px' }}>
-                                                        {item.name}
-                                                    </MenuItem>
-                                                ))}
+                                                {CAREER_OPTIONS.map((item) => {
+                                                    const blockedByLegajo = isCareerBlockedByLegajo(item.id);
+                                                    return (
+                                                        <MenuItem
+                                                            key={item.id}
+                                                            value={String(item.id)}
+                                                            disabled={blockedByLegajo}
+                                                            sx={{ fontFamily: '"Hanken Grotesk", sans-serif', fontSize: '14px', paddingY: '10px' }}
+                                                        >
+                                                            {item.name}
+                                                            {blockedByLegajo ? ' (ya cursás esta carrera)' : ''}
+                                                        </MenuItem>
+                                                    );
+                                                })}
                                             </Select>
                                             <FormHelperText sx={{ fontStyle: 'italic', color: '#40484D', fontSize: '11px', marginTop: '6px', fontFamily: '"Hanken Grotesk", sans-serif', lineHeight: '16px' }}>
                                                 Al cambiar la carrera, los requisitos de documentación pueden actualizarse automáticamente.
@@ -1580,6 +1635,12 @@ export const UsuarioScreen = () => {
                             <Alert severity="warning" sx={{ marginBottom: '16px', fontFamily: '"Hanken Grotesk", sans-serif' }}>
                                 Estás por realizar una acción importante e irreversible. Una vez confirmado, <strong>no podrás modificar los datos cargados ni los documentos adjuntos</strong> para esta carrera.
                             </Alert>
+
+                            {avisoDniOtrasCarreras && (
+                                <Alert severity="info" sx={{ marginBottom: '16px', fontFamily: '"Hanken Grotesk", sans-serif' }}>
+                                    {avisoDniOtrasCarreras}
+                                </Alert>
+                            )}
 
                             <Box sx={{ paddingY: '8px', fontFamily: '"Hanken Grotesk", sans-serif', fontSize: '12px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 <p style={{ fontWeight: 600, color: '#334155', margin: 0 }}>Resumen a enviar:</p>

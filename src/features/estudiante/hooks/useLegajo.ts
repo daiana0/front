@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { legajoService } from "../service/legajo.service";
 import { useAuthEstudiante } from "@/features/authEstudiantes/hooks/useAuthEstudiante";
+import { useLegajoSeleccionado } from "../context/LegajoSeleccionadoContext";
 import type {
   DatosPersonales,
   LegajoDetalle,
-  LegajoResumen,
   MateriaPendiente,
   ResumenAcademicoDTO,
 } from "../dto/legajo.dto";
@@ -12,11 +12,17 @@ import type { UnidadCurricularResumen } from "../dto/calificaciones.dto";
 
 export const useLegajo = () => {
   const { user } = useAuthEstudiante();
+  const {
+    legajos,
+    selectedLegajoId,
+    selectedLegajo,
+    changeLegajo,
+    loading: legajosLoading,
+    error: legajosError,
+  } = useLegajoSeleccionado();
 
   const [estudianteId, setEstudianteId] = useState<number | null>(null);
   const [datosPersonales, setDatosPersonales] = useState<DatosPersonales | null>(null);
-  const [legajos, setLegajos] = useState<LegajoResumen[]>([]);
-  const [selectedLegajoId, setSelectedLegajoId] = useState<number | null>(null);
   const [legajoDetalle, setLegajoDetalle] = useState<LegajoDetalle | null>(null);
   const [resumenAcademico, setResumenAcademico] = useState<ResumenAcademicoDTO | null>(null);
   const [unidadesCurriculares, setUnidadesCurriculares] = useState<UnidadCurricularResumen[]>([]);
@@ -36,19 +42,6 @@ export const useLegajo = () => {
       return null;
     }
   }, [user]);
-
-  const loadLegajos = useCallback(async (estudianteId: number) => {
-    try {
-      const data = await legajoService.getLegajosEstudiante(estudianteId);
-      setLegajos(data);
-      if (data.length > 0) {
-        const activo = data.find((l) => l.activo) || data[0];
-        setSelectedLegajoId(activo.id);
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al cargar legajos");
-    }
-  }, []);
 
   const loadLegajoData = useCallback(async (legajoId: number) => {
     setLoading(true);
@@ -74,21 +67,31 @@ export const useLegajo = () => {
   useEffect(() => {
     let ignore = false;
     (async () => {
-      const estId = await loadEstudianteId();
-      if (!ignore && estId) {
-        await loadLegajos(estId);
-      }
+      await loadEstudianteId();
+      if (!ignore) setLoading(legajosLoading);
     })();
     return () => {
       ignore = true;
     };
-  }, [loadEstudianteId, loadLegajos]);
+  }, [loadEstudianteId, legajosLoading]);
 
   useEffect(() => {
     if (selectedLegajoId) {
       loadLegajoData(selectedLegajoId);
+    } else if (!legajosLoading) {
+      setLegajoDetalle(null);
+      setResumenAcademico(null);
+      setUnidadesCurriculares([]);
+      setMateriasPendientes([]);
+      setLoading(false);
     }
-  }, [selectedLegajoId, loadLegajoData]);
+  }, [selectedLegajoId, loadLegajoData, legajosLoading]);
+
+  useEffect(() => {
+    if (legajosError) {
+      setError(legajosError);
+    }
+  }, [legajosError]);
 
   const updateDatosPersonales = useCallback(
     async (data: Partial<DatosPersonales>) => {
@@ -104,10 +107,6 @@ export const useLegajo = () => {
     [estudianteId]
   );
 
-  const changeLegajo = useCallback((legajoId: number) => {
-    setSelectedLegajoId(legajoId);
-  }, []);
-
   const materiasAprobadas = useMemo(() => {
     return unidadesCurriculares.filter(
       (uc) => uc.condicion === "promocionado" || uc.condicion === "regular"
@@ -120,10 +119,6 @@ export const useLegajo = () => {
     return Math.round((aprobadas / resumenAcademico.totalMateriasPlan) * 100);
   }, [resumenAcademico]);
 
-  const selectedLegajo = useMemo(() => {
-    return legajos.find((l) => l.id === selectedLegajoId) || null;
-  }, [legajos, selectedLegajoId]);
-
   return {
     datosPersonales,
     legajos,
@@ -134,7 +129,7 @@ export const useLegajo = () => {
     unidadesCurriculares,
     materiasAprobadas,
     materiasPendientes,
-    loading,
+    loading: loading || legajosLoading,
     error,
     updateDatosPersonales,
     changeLegajo,

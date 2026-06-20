@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dashboardDocentePalette as c } from '../styles/dashboardDocentePalette';
 import { DOCENTE_ROUTES, toDocentePath } from '@/Routes/docenteRoutes';
 import { authService } from '@/features/auth/service/auth.service';
@@ -32,67 +33,26 @@ import {
     BadgeContador,
     SeccionConBoton,
 } from '@/common/components/sistema';
+import { axiosClient } from '@/core/api/axios.client';
 import { themeTokens } from '@/common/components/sistema/theme';
 
-// ─── Interfaces de dominio ──────────────────────────────────────────────────
+import { docenteRepository } from '@/features/docente/repository/docente.repository';
+import type { IDashboardData, IDashboardEvaluacion, IDashboardAlerta } from '@/features/docente/types/docente';
 
-interface Division {
-    id: number;
-    subject: string;
-    grade: string;
-    division: string;
-    icon: React.ComponentType<{ size?: number }>;
-}
-
-interface Evaluacion {
-    id: number;
-    tipo: string;
-    materia: string;
-    division: string;
-    fecha: string;
-    diasRestantes: string;
-    color: string;
-}
-
-interface AlertaPendiente {
-    id: number;
-    tipo: string;
-    tiempo: string;
-    titulo: string;
-    contexto: string;
-    cantidadAlumnos: string;
-}
-
+// ─── Accesos Rápidos ─────────────────────────────────────────────────────────
 interface AccesoRapido {
     icon: React.ComponentType<{ size?: number; color?: string }>;
     label: string;
     bgColor: string;
     textColor: string;
     showBorder?: boolean;
+    path?: string;
 }
 
-// ─── Datos mock ─────────────────────────────────────────────────────────────
-
-const DIVISIONES: Division[] = [
-    { id: 1, subject: 'Matemática - A', grade: '1° Año', division: 'División A', icon: BookMarked },
-    { id: 2, subject: 'Lengua - B', grade: '1° Año', division: 'División B', icon: Languages },
-    { id: 3, subject: 'Historia - A', grade: '2° Año', division: 'División A', icon: History },
-];
-
-const EVALUACIONES: Evaluacion[] = [
-    { id: 1, tipo: '1° Parcial', materia: 'Matemática', division: 'División A', fecha: '28 Oct', diasRestantes: 'EN 4 DÍAS', color: c.evalBadgeBg },
-    { id: 2, tipo: 'Recuperatorio', materia: 'Lengua', division: 'División B', fecha: '02 Nov', diasRestantes: 'EN 9 DÍAS', color: c.evalBadgeText },
-];
-
-const ALERTAS: AlertaPendiente[] = [
-    { id: 1, tipo: 'PENDIENTE CRÍTICO', tiempo: 'Hace 5 días', titulo: 'Trabajo Práctico #2', contexto: 'Historia • División A', cantidadAlumnos: '32 alumnos sin nota' },
-    { id: 2, tipo: 'PENDIENTE CRÍTICO', tiempo: 'Hace 2 días', titulo: 'Evaluación de Lectura', contexto: 'Lengua • División B', cantidadAlumnos: '18 alumnos sin nota' },
-];
-
 const ACCESOS_RAPIDOS: AccesoRapido[] = [
-    { icon: Users, label: 'Mis divisiones', bgColor: c.primaryTeal, textColor: 'white' },
-    { icon: ClipboardCheck, label: 'Tomar Asistencia', bgColor: c.accentGreen, textColor: 'white' },
-    { icon: BarChart3, label: 'Panel Académico', bgColor: c.surfaceBlue, textColor: c.primaryTeal, showBorder: true },
+    { icon: Users, label: 'Mis divisiones', bgColor: c.primaryTeal, textColor: 'white', path: toDocentePath(DOCENTE_ROUTES.divisiones)},
+    { icon: ClipboardCheck, label: 'Tomar Asistencia', bgColor: c.accentGreen, textColor: 'white', path: toDocentePath(DOCENTE_ROUTES.asistencia)},
+    { icon: BarChart3, label: 'Panel Académico', bgColor: c.surfaceBlue, textColor: c.primaryTeal, showBorder: true, path: toDocentePath(DOCENTE_ROUTES.panelAcademico)},
 ];
 
 // ─── Columnas para TablaSimple (evaluaciones) ───────────────────────────────
@@ -107,12 +67,12 @@ interface FilaEvaluacion {
     _color: string; // campo interno para el render
 }
 
-const COLUMNAS_EVALUACIONES: {
+const getColumnasEvaluaciones = (navigate: ReturnType<typeof useNavigate>): {
     id: keyof FilaEvaluacion;
     label: string;
     align?: 'left' | 'center' | 'right';
     render?: (value: FilaEvaluacion[keyof FilaEvaluacion], row: FilaEvaluacion) => React.ReactNode;
-}[] = [
+}[] => [
         {
             id: 'instancia',
             label: 'INSTANCIA / MATERIA',
@@ -151,6 +111,7 @@ const COLUMNAS_EVALUACIONES: {
                 <Button
                     variant="contained"
                     size="small"
+                    onClick={() => navigate(toDocentePath(DOCENTE_ROUTES.calificaciones))}
                     sx={{
                         fontSize: '0.65rem',
                         py: 1,
@@ -166,34 +127,6 @@ const COLUMNAS_EVALUACIONES: {
             ),
         },
     ];
-
-// ─── Tipos y mapeo de roles ─────────────────────────────────────────────────
-
-/** Roles válidos alineados con el enum del backend. */
-type RolUsuario = 'ADMIN' | 'RECTOR' | 'DOCENTE' | 'ESTUDIANTE' | 'USUARIO';
-
-/**
- * Mapeo estricto de valores enum del backend a etiquetas amigables para el usuario.
- * Record<RolUsuario, string> garantiza que todo rol tiene su etiqueta — sin 'any'.
- */
-const MAPEO_ROLES: Record<RolUsuario, string> = {
-    ADMIN: 'Administrador',
-    RECTOR: 'Rector',
-    DOCENTE: 'Docente',
-    ESTUDIANTE: 'Alumno',
-    USUARIO: 'Usuario',
-};
-
-/**
- * Convierte un array de roles a una cadena legible.
- * - Un rol  → 'Rol: Docente'
- * - Varios  → 'Roles: Docente, Alumno'
- */
-function formatearRoles(roles: RolUsuario[]): string {
-    const etiquetas = roles.map((r) => MAPEO_ROLES[r] ?? r).join(', ');
-    const prefijo = roles.length > 1 ? 'Roles' : 'Rol';
-    return `${prefijo}: ${etiquetas}`;
-}
 
 // ─── Fecha del sistema en español ─────────────────────────────────────────────────
 
@@ -219,8 +152,39 @@ const FECHA_HOY: string = obtenerFechaHoy();
 // ─── Componente principal ────────────────────────────────────────────────────
 
 export default function DashboardDocente() {
+    const navigate = useNavigate();
     // ── Usuario autenticado ──────────────────────────────────────────────────
     const [currentUser] = useState<AuthUser | null>(() => authService.getCurrentUser());
+
+    // ── Ciclo lectivo activo (desde el backend) ─────────────────────────────
+    const [cicloLectivo, setCicloLectivo] = useState<number | null>(null);
+
+    // ── Datos del dashboard ──────────────────────────────────────────────────
+    const [dashboardData, setDashboardData] = useState<IDashboardData | null>(null);
+    const [loadingDashboard, setLoadingDashboard] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+        
+        axiosClient.get<{ status: string; data: { anio: number } }>('/ciclos-lectivos/activo')
+            .then(res => {
+                if (!cancelled) setCicloLectivo(res.data.data.anio);
+            })
+            .catch(() => {});
+
+        const loadDashboard = async () => {
+            setLoadingDashboard(true);
+            const res = await docenteRepository.getDashboardDocente();
+            if (!cancelled && !res.error && res.data) {
+                setDashboardData(res.data.data);
+            }
+            if (!cancelled) setLoadingDashboard(false);
+        };
+        
+        loadDashboard();
+
+        return () => { cancelled = true; };
+    }, []);
 
     if (!currentUser) {
         return (
@@ -232,15 +196,17 @@ export default function DashboardDocente() {
         );
     }
 
-    const filasEvaluaciones: FilaEvaluacion[] = EVALUACIONES.map((e) => ({
+    const filasEvaluaciones: FilaEvaluacion[] = (dashboardData?.proximasEvaluaciones || []).map((e) => ({
         id: e.id,
         instancia: `${e.tipo} · ${e.materia}`,
         division: e.division,
-        fecha: e.fecha,
+        fecha: new Date(e.fecha + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }),
         accion: '',
-        _color: e.color,
-        diasRestantes: e.diasRestantes,
+        _color: e.diasRestantes <= 2 ? c.danger : (e.diasRestantes <= 7 ? c.evalBadgeText : c.evalBadgeBg),
+        diasRestantes: e.diasRestantes === 0 ? 'HOY' : e.diasRestantes === 1 ? 'MAÑANA' : `EN ${e.diasRestantes} DÍAS`,
     }));
+
+    const columnasEvaluaciones = React.useMemo(() => getColumnasEvaluaciones(navigate), [navigate]);
 
     return (
         <Box component="main" sx={{ p: { xs: 2, md: 4 }, pt: { xs: 1, md: 2 }, width: '100%' }}>
@@ -258,7 +224,7 @@ export default function DashboardDocente() {
             {/* ① Cabecera de página con breadcrumb */}
             <CabeceraPagina
                 titulo={`Bienvenido/a, ${currentUser.nombre} ${currentUser.apellido}`}
-                descripcion={`${formatearRoles([currentUser.rol as RolUsuario])} · Ciclo Lectivo 2023 — Gestión académica y seguimiento`}
+                descripcion={`Ciclo Lectivo ${cicloLectivo ?? '…'} — Gestión académica y seguimiento`}
                 breadcrumbs={[
                     { label: 'Inicio', href: toDocentePath(DOCENTE_ROUTES.dashboard) },
                     { label: 'Dashboard' },
@@ -284,22 +250,26 @@ export default function DashboardDocente() {
                         }}>
                         <SeccionConBoton
                             titulo="Mis divisiones"
-                            contador={DIVISIONES.length}
+                            contador={dashboardData?.divisiones.length || 0}
                             contadorLabel="activas"
-                            botonLabel="Ver todas mis comisiones"
-                            onBotonClick={() => { /* navegar a comisiones */ }}
+                            botonLabel="Ver todas mis divisiones"
+                            onBotonClick={() => { navigate(toDocentePath(DOCENTE_ROUTES.divisiones)); }}
                         >
+                            {loadingDashboard ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>Cargando divisiones...</Typography>
+                            ) : (
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                                {DIVISIONES.map((div) => {
-                                    const esMate = div.subject.includes('Matemá');
+                                {dashboardData?.divisiones.map((div) => {
+                                    const esMate = div.descripcion.includes('Matemá');
                                     const IconoDiv = esMate ? BarChart3 : BookOpen;
                                     return (
                                         <motion.div
-                                            key={div.id}
+                                            key={div.idDivisionXUnidadCurricular}
                                             whileHover={{ scale: 1.02 }}
                                             transition={{ type: 'spring', stiffness: 300 }}
                                         >
                                             <Box
+                                                onClick={() => navigate(toDocentePath(DOCENTE_ROUTES.detalleDivision).replace(':id', div.idDivisionXUnidadCurricular.toString()))}
                                                 sx={{
                                                     backgroundColor: c.surfaceBlue,
                                                     borderRadius: '16px',
@@ -326,10 +296,10 @@ export default function DashboardDocente() {
                                                     </Avatar>
                                                     <Box>
                                                         <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                                                            {div.subject}
+                                                            {div.descripcion.split(' - ')[1] || div.descripcion}
                                                         </Typography>
                                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                            {div.grade} • {div.division}
+                                                            {div.descripcion.split(' - ')[0]}
                                                         </Typography>
                                                     </Box>
                                                 </Box>
@@ -338,7 +308,13 @@ export default function DashboardDocente() {
                                         </motion.div>
                                     );
                                 })}
+                                {(!dashboardData?.divisiones || dashboardData.divisiones.length === 0) && (
+                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                                        No existen divisiones activas.
+                                    </Typography>
+                                )}
                             </Box>
+                            )}
                         </SeccionConBoton>
                         </Card>
 
@@ -352,11 +328,23 @@ export default function DashboardDocente() {
                             </Box>
 
                             <Grid container spacing={3}>
-                                {ALERTAS.map((alerta) => (
-                                    <Grid size={{ xs: 12, md: 6 }} key={alerta.id}>
-                                        <AlertaCard alerta={alerta} />
+                                {loadingDashboard ? (
+                                    <Grid size={12}>
+                                        <Typography variant="body2" color="text.secondary">Cargando alertas...</Typography>
                                     </Grid>
-                                ))}
+                                ) : dashboardData?.alertas && dashboardData.alertas.length > 0 ? (
+                                    dashboardData.alertas.map((alerta) => (
+                                        <Grid size={{ xs: 12, md: 6 }} key={alerta.id}>
+                                            <AlertaCard alerta={alerta} />
+                                        </Grid>
+                                    ))
+                                ) : (
+                                    <Grid size={12}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            No existen notas pendientes para cargar.
+                                        </Typography>
+                                    </Grid>
+                                )}
                             </Grid>
                         </Box>
 
@@ -374,14 +362,14 @@ export default function DashboardDocente() {
                                     Próximas evaluaciones
                                 </Typography>
                                 <BadgeContador
-                                    contador={EVALUACIONES.length}
+                                    contador={dashboardData?.proximasEvaluaciones.length || 0}
                                     texto="próximas"
                                     color="warning"
                                     variant="chip"
                                 />
                             </Box>
                             <TablaSimple
-                                columnas={COLUMNAS_EVALUACIONES}
+                                columnas={columnasEvaluaciones}
                                 filas={filasEvaluaciones}
                                 emptyMessage="No hay evaluaciones próximas"
                             />
@@ -410,10 +398,11 @@ export default function DashboardDocente() {
 // ─── Sub-componentes locales ─────────────────────────────────────────────────
 
 interface AlertaCardProps {
-    alerta: AlertaPendiente;
+    alerta: IDashboardAlerta;
 }
 
 function AlertaCard({ alerta }: AlertaCardProps) {
+    const navigate = useNavigate();
     return (
         <Card
             sx={{
@@ -445,9 +434,10 @@ function AlertaCard({ alerta }: AlertaCardProps) {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
-                    {alerta.cantidadAlumnos}
+                    {alerta.alumnosSinNota} alumnos sin nota
                 </Typography>
                 <Button
+                    onClick={() => navigate(toDocentePath(DOCENTE_ROUTES.calificaciones))}
                     endIcon={<ChevronRight size={14} />}
                     sx={{ p: 0, minWidth: 0, typography: 'subtitle2', fontSize: '0.85rem', color: c.primaryTeal }}
                 >
@@ -464,14 +454,18 @@ interface AccesoRapidoButtonProps {
     bgColor: string;
     textColor: string;
     showBorder?: boolean;
+    path?: string;
 }
 
-function AccesoRapidoButton({ icon: Icon, label, bgColor, textColor, showBorder = false }: AccesoRapidoButtonProps) {
+function AccesoRapidoButton({ icon: Icon, label, bgColor, textColor, showBorder = false, path }: AccesoRapidoButtonProps) {
+    const navigate = useNavigate();
+
     return (
         <motion.div whileHover={{ scale: 1.02, x: 5 }} whileTap={{ scale: 0.98 }}>
             <Button
                 fullWidth
                 variant="contained"
+                onClick={() => path && navigate(path)}
                 sx={{
                     bgcolor: bgColor,
                     color: textColor,

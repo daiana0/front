@@ -5,6 +5,15 @@ import { asistenciaService } from '../service/asistencia.service';
 import type { AsistenciaResponse, MateriaAsistenciaResumen } from '../dto/asistencia.dto';
 
 import { useEstudianteId } from '@/features/authEstudiantes/hooks/useEstudianteId';
+import { useLegajoSeleccionado } from '../context/LegajoSeleccionadoContext';
+
+import type { MesCalendario } from '../utils/asistenciaCalendario.utils';
+import {
+  compareMes,
+  getMesInicial,
+  getRangoNavegacion,
+  shiftMes,
+} from '../utils/asistenciaCalendario.utils';
 
 export interface MateriaFiltroOpcion {
 
@@ -52,44 +61,33 @@ export const useAsistencia = () => {
 
   const [vista, setVista] = useState<'lista' | 'calendario'>('lista');
 
-
+  const [mesCalendario, setMesCalendario] = useState<MesCalendario>(() => getMesInicial([]));
 
   const idEstudiante = useEstudianteId();
-
-
+  const { selectedLegajoId, loading: legajosLoading } = useLegajoSeleccionado();
 
   const loadData = useCallback(async () => {
-
-    if (idEstudiante == null) return;
-
+    if (idEstudiante == null || selectedLegajoId == null) return;
     setLoading(true);
-
     setError(null);
-
     try {
-
-      const response = await asistenciaService.getAsistencia(idEstudiante);
-
+      const response = await asistenciaService.getAsistencia(idEstudiante, selectedLegajoId);
       setData(response);
-
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al obtener datos de asistencia');
-
     } finally {
-
       setLoading(false);
-
     }
-
-  }, [idEstudiante]);
-
-
+  }, [idEstudiante, selectedLegajoId]);
 
   useEffect(() => {
-
+    if (legajosLoading) return;
+    if (idEstudiante == null || selectedLegajoId == null) {
+      setData(null);
+      return;
+    }
     loadData();
-
-  }, [loadData]);
+  }, [idEstudiante, selectedLegajoId, legajosLoading, loadData]);
 
 
 
@@ -151,13 +149,33 @@ export const useAsistencia = () => {
 
   }, [resumenPorPeriodo]);
 
+  useEffect(() => {
+    setMesCalendario(getMesInicial(detallesFiltrados));
+  }, [materiaFiltro, periodoFiltro, detallesFiltrados]);
 
+  const rangoNavegacion = useMemo(
+    () => getRangoNavegacion(periodoFiltro, detallesFiltrados),
+    [periodoFiltro, detallesFiltrados],
+  );
+
+  const puedeMesAnterior = compareMes(mesCalendario, rangoNavegacion.min) > 0;
+  const puedeMesSiguiente = compareMes(mesCalendario, rangoNavegacion.max) < 0;
+
+  const irMesAnterior = useCallback(() => {
+    if (!puedeMesAnterior) return;
+    setMesCalendario((prev) => shiftMes(prev, -1));
+  }, [puedeMesAnterior]);
+
+  const irMesSiguiente = useCallback(() => {
+    if (!puedeMesSiguiente) return;
+    setMesCalendario((prev) => shiftMes(prev, 1));
+  }, [puedeMesSiguiente]);
 
   return {
 
     data,
 
-    loading,
+    loading: loading || legajosLoading,
 
     error,
 
@@ -178,6 +196,16 @@ export const useAsistencia = () => {
     detallesFiltrados,
 
     materiasDisponibles,
+
+    mesCalendario,
+
+    irMesAnterior,
+
+    irMesSiguiente,
+
+    puedeMesAnterior,
+
+    puedeMesSiguiente,
 
     reload: loadData,
 

@@ -26,11 +26,8 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import SchoolIcon from '@mui/icons-material/School';
 import PeopleIcon from '@mui/icons-material/People';
 
-// Static Import Reference of our generated images
-import mountainTrekkingImg from '@/assets/img/mountain_trekking_.png';
-import luxuryTourismImg from '@/assets/img/luxury_tourism_.png';
-import digitalInnovationImg from '@/assets/img/digital_innovation_.png';
 import { useNavigate } from 'react-router-dom';
+import { useCarrerasPublicas } from '@/features/carreras/hooks/useCarrerasPublicas';
 
 // Custom Material UI Theme configured with exact fonts, color tokens, and layout styles
 const theme = createTheme({
@@ -99,6 +96,8 @@ const theme = createTheme({
 
 export const Inicio = () => {
   const navigate = useNavigate();
+  const { carreras, loading: loadingCarreras } = useCarrerasPublicas();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -342,6 +341,7 @@ export const Inicio = () => {
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
                   <Button
                     variant="contained"
+                    onClick={() => document.getElementById('carreras')?.scrollIntoView({ behavior: 'smooth' })}
                     sx={{
                       backgroundColor: '#FFFFFF',
                       color: '#00474C',
@@ -364,6 +364,7 @@ export const Inicio = () => {
                   <Button
                     variant="text"
                     endIcon={<ArrowForwardIcon />}
+                    onClick={() => document.getElementById('carreras')?.scrollIntoView({ behavior: 'smooth' })}
                     sx={{
                       color: '#FFFFFF',
                       fontSize: '16px',
@@ -733,6 +734,7 @@ export const Inicio = () => {
                 {/* Right Action Trigger */}
                 <Button
                   variant="outlined"
+                  onClick={() => navigate(`usuario/${USUARIO_ROUTES.registro}`)}
                   sx={{
                     boxSizing: 'border-box',
                     backgroundColor: '#FFFFFF',
@@ -756,391 +758,112 @@ export const Inicio = () => {
                 </Button>
               </Box>
 
-              {/* Grid 3 column of career cards spec-faithful */}
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
-                  gap: 4,
-                }}
-              >
-
-                {/* Career Card 1: Trekking */}
-                <Box>
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      borderRadius: '32px',
-                      overflow: 'hidden',
-                      height: '480px',
-                      boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                      backgroundColor: '#FFFFFF',
-                    }}
-                  >
-                    {/* Cover image bleed */}
-                    <Box
-                      component="img"
-                      src={mountainTrekkingImg}
-                      alt="Guía de Trekking y Montaña"
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                      }}
-                      referrerPolicy="no-referrer"
-                    />
-
-                    {/* Gradient shade overlays strictly per CSS spec */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(0deg, rgba(0, 71, 76, 0.95) 0%, rgba(0, 71, 76, 0.3) 50%, rgba(0, 71, 76, 0) 100%)',
-                        zIndex: 1,
-                      }}
-                    />
-
-                    {/* Inside Bottom aligned text and button */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        bottom: 0,
-                        width: '100%',
-                        p: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        gap: 2,
-                        zIndex: 2,
-                      }}
-                    >
-                      {/* overlay blur badge */}
+              {loadingCarreras ? (
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: '#3F484A', textAlign: 'center', py: 8 }}>
+                  Cargando carreras...
+                </Typography>
+              ) : carreras.length === 0 ? (
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: '#3F484A', textAlign: 'center', py: 8 }}>
+                  Sin carreras disponibles
+                </Typography>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
+                    gap: 4,
+                  }}
+                >
+                  {carreras.map((carrera) => (
+                    <Box key={carrera.id}>
                       <Box
                         sx={{
-                          boxSizing: 'border-box',
-                          display: 'flex',
-                          padding: '4px 12px',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          backdropFilter: 'blur(6px)',
-                          borderRadius: '4px',
+                          position: 'relative',
+                          borderRadius: '32px',
+                          overflow: 'hidden',
+                          height: '480px',
+                          boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                          backgroundColor: '#00474C',
                         }}
                       >
-                        <Typography
-                          variant="caption"
+                        {carrera.imagen && (
+                          <Box
+                            component="img"
+                            src={carrera.imagen}
+                            alt={carrera.nombre}
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                            }}
+                          />
+                        )}
+
+                        <Box
                           sx={{
-                            fontFamily: '"Manrope", sans-serif',
-                            fontWeight: 700,
-                            fontSize: '10px',
-                            lineHeight: '15px',
-                            letterSpacing: '1px',
-                            textTransform: 'uppercase',
-                            color: '#FFFFFF',
+                            position: 'absolute',
+                            left: 0, right: 0, top: 0, bottom: 0,
+                            background: 'linear-gradient(0deg, rgba(0, 71, 76, 0.95) 0%, rgba(0, 71, 76, 0.3) 50%, rgba(0, 71, 76, 0) 100%)',
+                            zIndex: 1,
+                          }}
+                        />
+
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            left: 0, bottom: 0,
+                            width: '100%',
+                            p: 4,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            gap: 2,
+                            zIndex: 2,
                           }}
                         >
-                          ADVENTURE & NATURE
-                        </Typography>
+                          <Typography
+                            variant="h3"
+                            sx={{
+                              fontFamily: '"Plus Jakarta Sans", sans-serif',
+                              fontWeight: 800,
+                              fontSize: '24px',
+                              lineHeight: '30px',
+                              letterSpacing: '-0.6px',
+                              color: '#FFFFFF',
+                            }}
+                          >
+                            {carrera.nombre}
+                          </Typography>
+
+                          <Button
+                            variant="contained"
+                            endIcon={<ArrowOutwardIcon sx={{ fontSize: 14 }} />}
+                            onClick={() => navigate(`/carrera/${carrera.id}`)}
+                            sx={{
+                              backgroundColor: '#005B7F',
+                              borderRadius: '8px',
+                              color: '#FFFFFF',
+                              px: 3,
+                              py: 1.5,
+                              fontSize: '14px',
+                              fontWeight: 700,
+                              fontFamily: '"Manrope", sans-serif',
+                              boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                              alignSelf: 'flex-start',
+                              '&:hover': { backgroundColor: '#004F6E' },
+                            }}
+                          >
+                            Conocer más
+                          </Button>
+                        </Box>
                       </Box>
-
-                      {/* Heading */}
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontFamily: '"Plus Jakarta Sans", sans-serif',
-                          fontWeight: 800,
-                          fontSize: '24px',
-                          lineHeight: '30px',
-                          letterSpacing: '-0.6px',
-                          color: '#FFFFFF',
-                        }}
-                      >
-                        Guía de Trekking y Montaña
-                      </Typography>
-
-                      {/* Small Button Spec */}
-                      <Button
-                        variant="contained"
-                        endIcon={<ArrowOutwardIcon sx={{ fontSize: 14 }} />}
-                        sx={{
-                          backgroundColor: '#005B7F',
-                          borderRadius: '8px',
-                          color: '#FFFFFF',
-                          px: 3,
-                          py: 1.5,
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          fontFamily: '"Manrope", sans-serif',
-                          boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                          alignSelf: 'flex-start',
-                          '&:hover': {
-                            backgroundColor: '#004F6E',
-                          },
-                        }}
-                      >
-                        Conocer más
-                      </Button>
                     </Box>
-                  </Box>
+                  ))}
                 </Box>
-
-                {/* Career Card 2: Tourism */}
-                <Box>
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      borderRadius: '32px',
-                      overflow: 'hidden',
-                      height: '480px',
-                      boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                      backgroundColor: '#FFFFFF',
-                    }}
-                  >
-                    {/* Cover image bleed */}
-                    <Box
-                      component="img"
-                      src={luxuryTourismImg}
-                      alt="Turismo y Hotelería"
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                      }}
-                      referrerPolicy="no-referrer"
-                    />
-
-                    {/* Gradient shade overlays strictly per CSS spec */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(0deg, rgba(0, 71, 76, 0.95) 0%, rgba(0, 71, 76, 0.3) 50%, rgba(0, 71, 76, 0) 100%)',
-                        zIndex: 1,
-                      }}
-                    />
-
-                    {/* Inside Bottom aligned text and button */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        bottom: 0,
-                        width: '100%',
-                        p: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        gap: 2,
-                        zIndex: 2,
-                      }}
-                    >
-                      {/* overlay blur badge */}
-                      <Box
-                        sx={{
-                          boxSizing: 'border-box',
-                          display: 'flex',
-                          padding: '4px 12px',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          backdropFilter: 'blur(6px)',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontFamily: '"Manrope", sans-serif',
-                            fontWeight: 700,
-                            fontSize: '10px',
-                            lineHeight: '15px',
-                            letterSpacing: '1px',
-                            textTransform: 'uppercase',
-                            color: '#FFFFFF',
-                          }}
-                        >
-                          HOSPITALITY MANAGEMENT
-                        </Typography>
-                      </Box>
-
-                      {/* Heading */}
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontFamily: '"Plus Jakarta Sans", sans-serif',
-                          fontWeight: 800,
-                          fontSize: '24px',
-                          lineHeight: '30px',
-                          letterSpacing: '-0.6px',
-                          color: '#FFFFFF',
-                        }}
-                      >
-                        Turismo y Hotelería
-                      </Typography>
-
-                      {/* Small Button Spec */}
-                      <Button
-                        variant="contained"
-                        endIcon={<ArrowOutwardIcon sx={{ fontSize: 14 }} />}
-                        sx={{
-                          backgroundColor: '#005B7F',
-                          borderRadius: '8px',
-                          color: '#FFFFFF',
-                          px: 3,
-                          py: 1.5,
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          fontFamily: '"Manrope", sans-serif',
-                          boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                          alignSelf: 'flex-start',
-                          '&:hover': {
-                            backgroundColor: '#004F6E',
-                          },
-                        }}
-                      >
-                        Conocer más
-                      </Button>
-                    </Box>
-                  </Box>
-                </Box>
-
-                {/* Career Card 3: Technology */}
-                <Box>
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      borderRadius: '32px',
-                      overflow: 'hidden',
-                      height: '480px',
-                      boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                      backgroundColor: '#FFFFFF',
-                    }}
-                  >
-                    {/* Cover image bleed */}
-                    <Box
-                      component="img"
-                      src={digitalInnovationImg}
-                      alt="Desarrollo Web & Apps"
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                      }}
-                      referrerPolicy="no-referrer"
-                    />
-
-                    {/* Gradient shade overlays strictly per CSS spec */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(0deg, rgba(0, 71, 76, 0.95) 0%, rgba(0, 71, 76, 0.3) 50%, rgba(0, 71, 76, 0) 100%)',
-                        zIndex: 1,
-                      }}
-                    />
-
-                    {/* Inside Bottom aligned text and button */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        bottom: 0,
-                        width: '100%',
-                        p: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        gap: 2,
-                        zIndex: 2,
-                      }}
-                    >
-                      {/* overlay blur badge */}
-                      <Box
-                        sx={{
-                          boxSizing: 'border-box',
-                          display: 'flex',
-                          padding: '4px 12px',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          backdropFilter: 'blur(6px)',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontFamily: '"Manrope", sans-serif',
-                            fontWeight: 700,
-                            fontSize: '10px',
-                            lineHeight: '15px',
-                            letterSpacing: '1px',
-                            textTransform: 'uppercase',
-                            color: '#FFFFFF',
-                          }}
-                        >
-                          DIGITAL INNOVATION
-                        </Typography>
-                      </Box>
-
-                      {/* Heading */}
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontFamily: '"Plus Jakarta Sans", sans-serif',
-                          fontWeight: 800,
-                          fontSize: '24px',
-                          lineHeight: '30px',
-                          letterSpacing: '-0.6px',
-                          color: '#FFFFFF',
-                        }}
-                      >
-                        Desarrollo Web & Apps
-                      </Typography>
-
-                      {/* Small Button Spec */}
-                      <Button
-                        variant="contained"
-                        endIcon={<ArrowOutwardIcon sx={{ fontSize: 14 }} />}
-                        sx={{
-                          backgroundColor: '#005B7F',
-                          borderRadius: '8px',
-                          color: '#FFFFFF',
-                          px: 3,
-                          py: 1.5,
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          fontFamily: '"Manrope", sans-serif',
-                          boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                          alignSelf: 'flex-start',
-                          '&:hover': {
-                            backgroundColor: '#004F6E',
-                          },
-                        }}
-                      >
-                        Conocer más
-                      </Button>
-                    </Box>
-                  </Box>
-                </Box>
-
-              </Box>
+              )}
 
             </Container>
           </Box>

@@ -34,6 +34,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 import { LayoutPagina } from '../../../common/components/sistema';
+import { AsistenciaCalendarioView } from '../components/AsistenciaCalendarioView';
 import { useAsistencia } from '../hooks/useAsistencia';
 import { useExportAsistenciaPdf } from '../hooks/useExportAsistenciaPdf';
 
@@ -50,6 +51,11 @@ export const AsistenciaScreen: React.FC = () => {
     materiasFiltradas,
     detallesFiltrados,
     materiasDisponibles,
+    mesCalendario,
+    irMesAnterior,
+    irMesSiguiente,
+    puedeMesAnterior,
+    puedeMesSiguiente,
   } = useAsistencia();
 
   const [openHistorialDialog, setOpenHistorialDialog] = useState(false);
@@ -321,7 +327,6 @@ export const AsistenciaScreen: React.FC = () => {
             size="small"
             onClick={() => {
               setVista('calendario');
-              setSuccessMsg('✓ Vista de calendario simulada.');
               setTimeout(() => setSuccessMsg(null), 3000);
             }}
             startIcon={<CalendarMonthIcon sx={{ fontSize: '14px' }} />}
@@ -666,95 +671,19 @@ export const AsistenciaScreen: React.FC = () => {
               )}
             </Paper>
           </>
+        ) : detallesFiltrados.length === 0 ? (
+          <Alert severity="info" sx={{ borderRadius: '12px' }}>
+            No hay asistencias en este período o materia.
+          </Alert>
         ) : (
-          /* VIEW: SEMI-MOCK CALENDAR MODE */
-          <Paper
-            elevation={0}
-            sx={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #C0C7CE',
-              borderRadius: '12px',
-              p: 4,
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-            }}
-          >
-            <CalendarMonthIcon sx={{ fontSize: '64px', color: '#005B7F' }} />
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: '#0B1C30', mb: 1 }}>
-                Calendario de Asistencias
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#70787E', maxWidth: '500px' }}>
-                Estás visualizando la simulación de vista calendario para el cuatrimestre seleccionado.
-                Todos tus presentes y ausencias se agruparán cronológicamente de forma visual.
-              </Typography>
-            </Box>
-
-            <Grid container spacing={1} sx={{ maxWidth: '350px', width: '100%', mt: 2 }}>
-              {Array.from({ length: 30 }).map((_, idx) => {
-                const dayNum = idx + 1;
-                let bgColor = '#E8FAF5';
-                let textColor = '#00725F';
-                let border = '1px solid #83F7DA';
-                if (dayNum === 12 || dayNum === 23) {
-                  bgColor = '#FFDAD6';
-                  textColor = '#93000A';
-                  border = '1px solid #FFCDD2';
-                } else if (dayNum > 26) {
-                  bgColor = '#F5F5F5';
-                  textColor = '#9E9E9E';
-                  border = '1px solid #E0E0E0';
-                }
-
-                return (
-                  /* 💡 SOLUCIÓN: Adaptada la vista calendario interna al formato size de v6 */
-                  <Grid key={idx} size={{ xs: 1.7 }}>
-                    <Tooltip title={dayNum === 12 || dayNum === 23 ? 'Ausente' : dayNum > 26 ? 'Sin clases' : 'Presente'}>
-                      <Box
-                        sx={{
-                          height: '40px',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          backgroundColor: bgColor,
-                          color: textColor,
-                          border: border,
-                          borderRadius: '6px',
-                          fontWeight: 700,
-                          fontSize: '14px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {dayNum}
-                      </Box>
-                    </Tooltip>
-                  </Grid>
-                );
-              })}
-            </Grid>
-
-            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: '12px', height: '12px', borderRadius: '3px', backgroundColor: '#83F7DA' }} />
-                <Typography variant="caption" sx={{ color: '#70787E', fontWeight: 500 }}>Presente</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: '12px', height: '12px', borderRadius: '3px', backgroundColor: '#FFDAD6' }} />
-                <Typography variant="caption" sx={{ color: '#70787E', fontWeight: 500 }}>Ausente</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: '12px', height: '12px', borderRadius: '3px', backgroundColor: '#F5F5F5' }} />
-                <Typography variant="caption" sx={{ color: '#70787E', fontWeight: 500 }}>Sin clases</Typography>
-              </Box>
-            </Box>
-
-            <Button variant="outlined" size="small" onClick={() => setVista('lista')} sx={{ mt: 2 }}>
-              Volver a vista de lista
-            </Button>
-          </Paper>
+          <AsistenciaCalendarioView
+            detalles={detallesFiltrados}
+            mesCalendario={mesCalendario}
+            onMesAnterior={irMesAnterior}
+            onMesSiguiente={irMesSiguiente}
+            puedeMesAnterior={puedeMesAnterior}
+            puedeMesSiguiente={puedeMesSiguiente}
+          />
         )}
 
         {/* INFO FOOTER ELEMENT */}

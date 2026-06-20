@@ -13,6 +13,7 @@ import {
   Stack,
   Box,
   Typography,
+  TableSortLabel,
 } from "@mui/material";
 import { ReactNode } from "react";
 import { themeTokens } from "./theme";
@@ -32,6 +33,7 @@ interface Columna {
   width?: string | number;
   formato?: "fecha" | "numero" | "texto";
   multilinea?: boolean;
+  sortable?: boolean;
   render?: (value: any, row: any) => ReactNode;
 }
 
@@ -44,10 +46,14 @@ interface TablaAvanzadaProps {
   filasPorPagina?: number;
   emptyMessage?: string;
   maxAltura?: string | number;
-  // NUEVAS PROPS PARA SERVER-SIDE
+  // PROPS PARA SERVER-SIDE
   paginaActual?: number; // 0-indexed, igual que antes
   onPaginaChange?: (nuevaPagina: number) => void;
   onFilasPorPaginaChange?: (nuevoValor: number) => void;
+  // PROPS PARA SORTING
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (columnId: string) => void;
 }
 
 export const TablaAvanzada = ({
@@ -59,10 +65,12 @@ export const TablaAvanzada = ({
   filasPorPagina: filasPorPaginaDefault = 10,
   emptyMessage = "No hay datos para mostrar",
   maxAltura,
-  // Nuevas props
   paginaActual: paginaActualProp,
   onPaginaChange,
   onFilasPorPaginaChange,
+  sortBy,
+  sortDirection = "asc",
+  onSort,
 }: TablaAvanzadaProps) => {
   // Estados internos para client-side
   const [paginaInterna, setPaginaInterna] = useState(0);
@@ -152,20 +160,35 @@ export const TablaAvanzada = ({
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {columnas.map((col) => (
-                <TableCell
-                  key={col.id}
-                  align={col.align || "left"}
-                  width={col.width}
-                  sx={{
-                    fontWeight: 600,
-                    backgroundColor: themeTokens.colors.surfaceHover,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {col.label}
-                </TableCell>
-              ))}
+              {columnas.map((col) => {
+                const isSortable = onSort && col.sortable !== false;
+                return (
+                  <TableCell
+                    key={col.id}
+                    align={col.align || "left"}
+                    width={col.width}
+                    sx={{
+                      fontWeight: 600,
+                      backgroundColor: themeTokens.colors.surfaceHover,
+                      whiteSpace: "nowrap",
+                      cursor: isSortable ? "pointer" : "default",
+                      userSelect: "none",
+                    }}
+                    onClick={() => isSortable && onSort(col.id)}
+                  >
+                    {isSortable ? (
+                      <TableSortLabel
+                        active={sortBy === col.id}
+                        direction={sortBy === col.id ? sortDirection : "asc"}
+                      >
+                        {col.label}
+                      </TableSortLabel>
+                    ) : (
+                      col.label
+                    )}
+                  </TableCell>
+                );
+              })}
               {acciones.length > 0 && (
                 <TableCell
                   align="center"
@@ -175,7 +198,7 @@ export const TablaAvanzada = ({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  ACCIONES
+                  Acciones
                 </TableCell>
               )}
             </TableRow>
@@ -263,6 +286,11 @@ export const TablaAvanzada = ({
           onPaginaChange={(nuevaPagina) => handlePaginaChange(nuevaPagina - 1)} // convertir a 0-indexed
           onElementosPorPaginaChange={handleFilasPorPaginaChange}
           mostrarSelector={true}
+          sx={{
+            border: "none",
+            borderRadius: 0,
+            borderTop: `1px solid ${themeTokens.colors.border}`,
+          }}
         />
       )}
     </Paper>

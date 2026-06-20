@@ -78,9 +78,11 @@ export const RegistroDeUsuarioScreen = () => {
         if (!form.apellido.trim()) tempErrors.apellido = 'El apellido es obligatorio';
         if (!form.email.trim()) tempErrors.email = 'El correo electrónico es obligatorio';
         else if (!/\S+@\S+\.\S+/.test(form.email)) tempErrors.email = 'El formato del correo electrónico no es válido';
-        if (!form.contrasena) tempErrors.contrasena = 'La contraseña es obligatoria';
-        else if (form.contrasena.length < 6) tempErrors.contrasena = 'La contraseña debe tener al menos 6 caracteres';
-
+        if (!form.contrasena) {
+            tempErrors.contrasena = 'La contraseña es obligatoria';
+        } else if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/~`]).{8,}$/.test(form.contrasena)) {
+            tempErrors.contrasena = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial';
+        }   
         setErrors(tempErrors);
         return Object.keys(tempErrors).length === 0;
     };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Box, Card, CardContent, Typography } from '@mui/material';
 import GppGoodOutlinedIcon from '@mui/icons-material/GppGoodOutlined';
@@ -6,11 +6,32 @@ import { LoginForm } from '../components/LoginForm';
 import { useAuth } from '../hooks/useAuth';
 import { themeTokens } from '../../../common/components/sistema/theme';
 import logoIssrc from '../../../assets/logos/logo_color_ISSRC.svg';
-import { docenteRecuperarPath } from '@/Routes/docenteRoutes';
+import { docenteRecuperarPath, docenteDashboardPath } from '@/Routes/docenteRoutes';
+import { AUTH_TOKEN_STORAGE_KEY } from '@/core/constants/auth.storage';
+import { getRolToken } from '@/common/utils/getRolToken';
 
 export const LoginScreen: React.FC = () => {
   const navigate = useNavigate();
   const { login, loading, error } = useAuth('DOCENTE');
+
+  // Si AL MONTAR ya hay una sesión docente activa (el usuario llegó a /login
+  // estando logueado), evitamos mostrar el login y volvemos a donde estaba (o
+  // al dashboard si entró directo sin historial). Se evalúa una sola vez en el
+  // montaje: así NO reacciona al login que el propio formulario acaba de hacer
+  // (que ya navega al dashboard desde useAuth), evitando un rebote a logout-success.
+  const [yaLogueado] = useState(
+    () =>
+      !!localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) &&
+      getRolToken(localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || '') === 'DOCENTE',
+  );
+
+  useEffect(() => {
+    if (!yaLogueado) return;
+    if (window.history.length > 1) navigate(-1);
+    else navigate(docenteDashboardPath, { replace: true });
+  }, [yaLogueado, navigate]);
+
+  if (yaLogueado) return null;
 
   return (
     <Box

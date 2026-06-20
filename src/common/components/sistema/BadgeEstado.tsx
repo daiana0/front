@@ -3,7 +3,7 @@ import { Chip } from '@mui/material';
 import type { ChipProps } from '@mui/material/Chip';
 import { themeTokens } from './theme.js';
 
-type EstadoValido = 'borrador' | 'activo' | 'pendiente' | 'rechazado' | 'error' | 'aprobado' | 'desaprobado';
+type EstadoValido = 'borrador' | 'activo' | 'pendiente' | 'rechazado' | 'error' | 'aprobado' | 'desaprobado' | 'inactivo' | 'validado';
 
 const ESTADOS_CONFIG: Record<EstadoValido, { label: string; color: ChipProps['color'] }> = {
   borrador: { label: 'Borrador', color: 'info' },
@@ -13,16 +13,19 @@ const ESTADOS_CONFIG: Record<EstadoValido, { label: string; color: ChipProps['co
   error: { label: 'Error', color: 'error' },
   aprobado: { label: 'Aprobado', color: 'success' },
   desaprobado: { label: 'Desaprobado', color: 'error' },
+  inactivo: { label: 'Inactivo', color: 'error' },
+  validado: { label: 'Validado', color: 'success' },
 };
 
 interface BadgeEstadoProps {
   estado: EstadoValido | string;
   customLabel?: string;
   variant?: 'filled' | 'outlined';
+  icon?: React.ReactElement;
   sx?: any;
 }
 
-export const BadgeEstado: React.FC<BadgeEstadoProps> = ({ estado, customLabel, variant = 'filled', sx }) => {
+export const BadgeEstado: React.FC<BadgeEstadoProps> = ({ estado, customLabel, variant = 'filled', icon, sx }) => {
   const normalizedEstado = estado?.toLowerCase() as EstadoValido;
   const config = ESTADOS_CONFIG[normalizedEstado] || { label: estado, color: 'info' };
   
@@ -32,6 +35,7 @@ export const BadgeEstado: React.FC<BadgeEstadoProps> = ({ estado, customLabel, v
       color={config.color}
       size="small"
       variant={variant}
+      icon={icon}
       sx={{ 
         borderRadius: `${themeTokens.borderRadius.button}px`,
         fontWeight: 600,

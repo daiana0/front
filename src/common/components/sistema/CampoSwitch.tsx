@@ -1,5 +1,5 @@
 // src/components/sistema/CampoSwitch.tsx
-import { FormControlLabel, Switch, type SwitchProps, styled, Paper } from '@mui/material';
+import { FormControlLabel, Switch, type SwitchProps, styled, Box } from '@mui/material';
   import { themeTokens } from "./theme";
 import React from 'react';
 // Switch personalizado con estilos
@@ -11,16 +11,14 @@ const SwitchPersonalizado = styled(Switch)(({ theme }) => ({
     padding: 0,
     margin: 2,
     transitionDuration: '300ms',
+    color: themeTokens.colors.textSecondary, // Color de la bolita inactiva
     '&.Mui-checked': {
       transform: 'translateX(24px)',
+      color: '#fff', // Color de la bolita activa (blanca)
       '& + .MuiSwitch-track': {
         backgroundColor: theme.palette.primary.main,
-        opacity: 0.2,
+        opacity: 1, // Activo: Fondo oscuro y sólido
         border: 0,
-      },
-      '& .MuiSwitch-thumb': {
-        width: 22,
-        height: 22,
       },
     },
   },
@@ -29,10 +27,11 @@ const SwitchPersonalizado = styled(Switch)(({ theme }) => ({
     width: 22,
     height: 22,
     borderRadius: '50%',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)', // Opcional: mejora el contraste
   },
   '& .MuiSwitch-track': {
     borderRadius: 28,
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: themeTokens.colors.border, // Inactivo: Fondo claro
     opacity: 1,
     transition: theme.transitions.create(['background-color'], {
       duration: 500,
@@ -46,20 +45,20 @@ interface CampoSwitchProps extends SwitchProps {
 
 export const CampoSwitch = ({ label, ...props }: CampoSwitchProps) => {
   return (
-    <Paper 
-      elevation={0}
+    <Box 
       sx={{ 
-        bgcolor: 'background.paper',
+        bgcolor: 'transparent',
         p: 0.5,
         borderRadius: 1,
-        border: `1px solid ${themeTokens.colors.border}`
+        display: 'inline-flex',
+        alignItems: 'center',
       }}
     >
-    <FormControlLabel
-      control={<SwitchPersonalizado {...props} />}
-      label={label}
-      sx={{ ml: 0 }}
-    />
-    </Paper>
+      <FormControlLabel
+        control={<SwitchPersonalizado {...props} />}
+        label={label}
+        sx={{ ml: 0 }}
+      />
+    </Box>
   );
 };

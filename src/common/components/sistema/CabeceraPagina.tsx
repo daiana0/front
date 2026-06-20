@@ -16,6 +16,7 @@ interface Accion {
   onClick?: () => void;
   disabled?: boolean;
   icono?: ReactNode;
+  sx?: any;
 }
 
 interface CabeceraPaginaProps {
@@ -23,13 +24,15 @@ interface CabeceraPaginaProps {
   titulo: string;
   descripcion?: string;
   acciones?: Accion[];
+  extra?: ReactNode;
 }
 
 export const CabeceraPagina: React.FC<CabeceraPaginaProps> = ({ 
   breadcrumbs = [], 
   titulo, 
   descripcion, 
-  acciones = []
+  acciones = [],
+  extra
 }) => {
   const navigate = useNavigate();
 
@@ -81,19 +84,22 @@ export const CabeceraPagina: React.FC<CabeceraPaginaProps> = ({
         alignItems: 'start'
       }}>
         <Box>
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            sx={{ 
-              fontWeight: 800,
-              color: 'primary.main',
-              mb: 1,
-              letterSpacing: '-0.02em',
-              fontFamily: themeTokens.typography.fontFamily
-            }}
-          >
-            {titulo}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              sx={{ 
+                fontSize: '2rem',
+                fontWeight: 800,
+                color: 'primary.main',
+                letterSpacing: '-0.02em',
+                fontFamily: themeTokens.typography.fontFamily
+              }}
+            >
+              {titulo}
+            </Typography>
+            {extra}
+          </Box>
           {descripcion && (
             <Typography 
               variant="body1" 
@@ -131,7 +137,8 @@ export const CabeceraPagina: React.FC<CabeceraPaginaProps> = ({
                   borderRadius: `${themeTokens.borderRadius.button}px`,
                   px: 2.5,
                   py: 1,
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
+                  ...(accion.sx || {})
                 }}
               >
                 {accion.label}

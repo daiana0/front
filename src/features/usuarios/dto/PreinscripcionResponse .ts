@@ -12,5 +12,5 @@ export interface PreinscripcionResponse {
     analitico: string;
     partidaNacimiento: string;
     foto: string;
-    estado: 'pendiente' | 'aprobado' | 'rechazado';
+    estado: 'pendiente' | 'aprobado' | 'rechazado' | 'matriculado';
 }

@@ -58,4 +58,9 @@ export const estudianteNavigation = [
         path: toEstudiantePath(ESTUDIANTE_ROUTES.inscripcionesUc),
         icon: <HowToReg sx={{ fontSize: 18 }} />,
     },
+    {
+        label: "Documentación",
+        path: toEstudiantePath(ESTUDIANTE_ROUTES.documentacion),
+        icon: <DocumentsIcon sx={{ fontSize: 18 }} />,
+    }
 ];

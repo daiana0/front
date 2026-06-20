@@ -1,11 +1,12 @@
-import * as React from 'react';
 import DashboardIcon       from '@mui/icons-material/DashboardOutlined';
 import PersonIcon          from '@mui/icons-material/PersonOutlined';
 import GroupIcon           from '@mui/icons-material/GroupsOutlined';
 import GradeIcon           from '@mui/icons-material/GradeOutlined';
 import FactCheckIcon       from '@mui/icons-material/FactCheckOutlined';
 import EventNoteIcon       from '@mui/icons-material/EventNoteOutlined';
-import NotificationsIcon   from '@mui/icons-material/NotificationsOutlined';
+import ListAltIcon         from '@mui/icons-material/ListAltOutlined';
+import SchoolIcon          from '@mui/icons-material/SchoolOutlined';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulletedOutlined';
 import { DOCENTE_ROUTES, toDocentePath } from '../Routes/docenteRoutes';
 import type { NavigationItem } from '@/types/navigation';
 
@@ -40,13 +41,18 @@ export const docenteNavigation: NavigationItem[] = [
         icon:  <FactCheckIcon sx={{ fontSize: 18 }} />,
     },
     {
+        label: 'Mesas de examen',
+        path:  toDocentePath(DOCENTE_ROUTES.mesasExamen),
+        icon:  <ListAltIcon sx={{ fontSize: 18 }} />,
+    },
+    {
         label: 'Evaluaciones',
-        path:  toDocentePath(DOCENTE_ROUTES.evaluaciones),
+        path:  toDocentePath(DOCENTE_ROUTES.nuevaInstanciaEvaluativa),
         icon:  <EventNoteIcon sx={{ fontSize: 18 }} />,
     },
     {
-        label: 'Notificaciones',
-        path:  toDocentePath(DOCENTE_ROUTES.notificaciones),
-        icon:  <NotificationsIcon sx={{ fontSize: 18 }} />,
+        label: 'Panel académico',
+        path:  toDocentePath(DOCENTE_ROUTES.panelAcademico),
+        icon:  <SchoolIcon sx={{ fontSize: 18 }} />,
     },
 ];

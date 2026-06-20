@@ -7,6 +7,8 @@ import {
   TableRow,
   Paper,
   TableSortLabel,
+  SxProps,
+  Theme,
 } from "@mui/material";
 import { ReactNode } from "react";
 import { themeTokens } from "./theme";
@@ -14,7 +16,7 @@ import React from 'react';
 
 interface Columna {
   id: string;
-  label: string;
+  label: ReactNode;
   align?: "left" | "center" | "right";
   width?: string | number;
   render?: (value: any, row: any) => ReactNode;
@@ -28,6 +30,7 @@ interface TablaSimpleProps {
   onOrdenar?: (id: string) => void;
   emptyMessage?: string;
   maxAltura?: string | number;
+  sx?: SxProps<Theme>;
 }
 
 export const TablaSimple = ({
@@ -38,6 +41,7 @@ export const TablaSimple = ({
   onOrdenar,
   emptyMessage = "No hay datos para mostrar",
   maxAltura,
+  sx,
 }: TablaSimpleProps) => {
   const handleSort = (id: string) => {
     if (onOrdenar) {
@@ -55,6 +59,7 @@ export const TablaSimple = ({
         borderColor: themeTokens.colors.border,
         maxHeight: maxAltura,
         overflowX: "auto",
+        ...sx,
       }}
     >
       <Table stickyHeader>

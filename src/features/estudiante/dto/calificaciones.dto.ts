@@ -33,7 +33,8 @@ export interface HistorialAcademicoUC {
 
 export interface ResumenAcademicoDTO {
   promedioGeneral: number;
-  totalMaterias: number;
+  totalMateriasInscriptas: number;
+  totalMateriasPlan: number;
   promocionadas: number;
   regulares: number;
   libres: number;

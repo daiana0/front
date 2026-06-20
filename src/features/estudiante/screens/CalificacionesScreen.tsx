@@ -162,11 +162,13 @@ export const CalificacionesScreen: React.FC = () => {
         </Typography>
 
         <Paper
+          elevation={0}
           sx={{
             p: 2,
             mb: 3,
+            backgroundColor: themeTokens.colors.surface,
             border: `1px solid ${themeTokens.colors.border}`,
-            borderRadius: themeTokens.borderRadius.card,
+            borderRadius: `${themeTokens.borderRadius.card}px`,
           }}
         >
           <Grid container spacing={2} sx={{ alignItems: 'center' }}>

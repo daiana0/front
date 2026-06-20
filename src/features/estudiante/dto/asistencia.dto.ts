@@ -5,6 +5,7 @@ export type AsistenciaEstado = 'Presente' | 'Ausente' | 'Justificado';
 export interface RegistroAsistencia {
   id: number;
   fecha: string;
+  fechaISO: string;
   materia: string;
   division: string;
   idUnidadCurricular: number;

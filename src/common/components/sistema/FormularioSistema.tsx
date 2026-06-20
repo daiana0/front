@@ -8,22 +8,21 @@ import {
   IconButton,
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
-import { ReactNode } from "react";
 import { ModalSistema } from "./ModalSistema";
 import { themeTokens } from "./theme";
-import React from 'react';
+import * as React from 'react';
 
 interface FormularioSistemaProps {
   titulo: string;
   open: boolean;
   onClose: () => void;
-  children: ReactNode;
+  children?: React.ReactNode;
   maxWidth?: "xs" | "sm" | "md" | "lg" | "xl";
   botonPrincipal?: { label: string; onClick: () => void; disabled?: boolean };
-  botonSecundario?: { label: string; onClick: () => void };
+  botonSecundario?: { label: string; onClick: () => void; disabled?: boolean };
 }
 
-export const FormularioSistema = ({
+export const FormularioSistema: React.FC<FormularioSistemaProps> = ({
   titulo,
   open,
   onClose,
@@ -31,7 +30,7 @@ export const FormularioSistema = ({
   maxWidth = "md",
   botonPrincipal,
   botonSecundario,
-}: FormularioSistemaProps) => {
+}) => {
   return (
     <ModalSistema open={open} onClose={onClose} maxWidth={maxWidth}>
       <Box>
@@ -67,7 +66,11 @@ export const FormularioSistema = ({
         {/* Botones de acción */}
         <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end" }}>
           {botonSecundario && (
-            <Button variant="outlined" onClick={botonSecundario.onClick}>
+            <Button
+              variant="outlined"
+              onClick={botonSecundario.onClick}
+              disabled={botonSecundario.disabled}
+            >
               {botonSecundario.label}
             </Button>
           )}

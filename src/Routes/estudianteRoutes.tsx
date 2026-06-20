@@ -16,6 +16,7 @@ export const ESTUDIANTE_ROUTES = {
     recuperarContrasenia: "/recuperar-contrasenia",
     restablecerContrasenia: "/restablecer-contrasenia/:token",
     restablecerExitoso: "/restablecer-exitoso",
+    documentacion: "/documentacion",
 };
 
 /** Rutas absolutas para navegación desde fuera del router de estudiantes */

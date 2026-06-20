@@ -9,10 +9,12 @@ interface ApiWrappedResponse<T> {
 }
 
 export const dashboardRepository = {
-  async getDashboard(idEstudiante: number): Promise<ApiResponse<DashboardResponse>> {
+  async getDashboard(idEstudiante: number, idLegajo?: number): Promise<ApiResponse<DashboardResponse>> {
     try {
+      const params = idLegajo != null ? { idLegajo } : undefined;
       const response = await axiosClient.get<ApiWrappedResponse<DashboardResponse>>(
         `/estudiantes/${idEstudiante}/dashboard`,
+        { params },
       );
       return { data: response.data.data, error: null, status: response.status };
     } catch (error) {

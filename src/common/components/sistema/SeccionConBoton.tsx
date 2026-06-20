@@ -8,7 +8,7 @@ interface SeccionConBotonProps {
   titulo: string;
   contador?: number;
   contadorLabel?: string;
-  botonLabel: string;
+  botonLabel?: string;
   onBotonClick?: () => void;
   children?: ReactNode;
 }
@@ -51,14 +51,18 @@ export const SeccionConBoton = ({
               sx={{ 
                 backgroundColor: themeTokens.colors.surfaceHover,
                 color: 'text.secondary',
-                fontWeight: 500
+                fontWeight: 600,
+                borderRadius: `${themeTokens.borderRadius.button}px`,
+                height: '24px'
               }}
             />
           )}
         </Box>
-        <Button variant="contained" onClick={onBotonClick}>
-          {botonLabel}
-        </Button>
+        {botonLabel && (
+          <Button variant="contained" onClick={onBotonClick}>
+            {botonLabel}
+          </Button>
+        )}
       </Box>
       <Box>
         {children}

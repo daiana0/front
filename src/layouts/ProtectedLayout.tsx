@@ -7,6 +7,7 @@ import { estudianteNavigation } from '@/Navigation/EstudianteNavigation';
 import { themeTokens } from '@/common/components/sistema/theme';
 import { useAuthEstudiante } from '@/features/authEstudiantes/hooks/useAuthEstudiante';
 import { PerfilEstudianteProvider } from '@/features/perfil/context/PerfilEstudianteContext';
+import { LegajoSeleccionadoProvider } from '@/features/estudiante/context/LegajoSeleccionadoContext';
 import { usePerfil } from '@/features/perfil/hooks/usePerfil';
 import { resolveFotoPerfilUrl } from '@/features/perfil/constants/fotoPerfil.constants';
 
@@ -68,7 +69,9 @@ const ProtectedLayoutContent: React.FC = () => {
 };
 
 export const ProtectedLayout: React.FC = () => (
-  <PerfilEstudianteProvider>
-    <ProtectedLayoutContent />
-  </PerfilEstudianteProvider>
+  <LegajoSeleccionadoProvider>
+    <PerfilEstudianteProvider>
+      <ProtectedLayoutContent />
+    </PerfilEstudianteProvider>
+  </LegajoSeleccionadoProvider>
 );

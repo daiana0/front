@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -37,20 +37,32 @@ import {
 } from '@mui/icons-material';
 
 import { useMesasExamen } from '../hooks/useMesasExamen.js';
+import { ResultadoRecienteCard } from '../components/ResultadoRecienteCard';
 import { CabeceraPagina, BadgeEstado, BadgeContador, themeTokens } from '../../../common/components/sistema/index.js';
 
 export const MesasExamenScreen: React.FC = () => {
-  // Inicializamos el hook para el estudiante 'Sandro' (legajo id: 1)
-  const { disponibles, inscripciones, resultados, loading, error, inscribirse, darseBaja } = useMesasExamen(1);
+  const { disponibles, inscripciones, resultados, loading, error, inscribirse, darseBaja } = useMesasExamen();
   
   // Controlador de las Pestañas (Tabs) locales:
   // 0: Mesas disponibles, 1: Mis inscripciones, 2: Mis resultados
   const [activeTab, setActiveTab] = useState(0);
 
   // Estados de los Filtros de la pestaña "Mesas disponibles"
-  const [filtroTurno, setFiltroTurno] = useState('Junio 2024');
+  const [filtroTurno, setFiltroTurno] = useState('todas');
   const [filtroMateria, setFiltroMateria] = useState('todas');
   const [filtroMostrar, setFiltroMostrar] = useState('disponibles');
+
+  const turnosDisponibles = useMemo(
+    () => [...new Set(disponibles.map((m) => m.turno).filter(Boolean))],
+    [disponibles],
+  );
+
+  const resultadoReciente = resultados[0] ?? null;
+
+  const materiasDisponibles = useMemo(
+    () => [...new Set(disponibles.map((m) => m.materia).filter(Boolean))],
+    [disponibles],
+  );
 
   // Estados interactivos para Confirmación de Inscripción
   const [openInscripcionDialog, setOpenInscripcionDialog] = useState(false);
@@ -214,7 +226,9 @@ export const MesasExamenScreen: React.FC = () => {
                     label="Turno"
                   >
                     <MenuItem value="todas">Todos los turnos</MenuItem>
-                    <MenuItem value="Junio 2024">Junio 2024</MenuItem>
+                    {turnosDisponibles.map((turno) => (
+                      <MenuItem key={turno} value={turno}>{turno}</MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -229,10 +243,9 @@ export const MesasExamenScreen: React.FC = () => {
                     label="Materia"
                   >
                     <MenuItem value="todas">Todas las materias</MenuItem>
-                    <MenuItem value="Programación I">Programación I</MenuItem>
-                    <MenuItem value="Base de Datos">Base de Datos</MenuItem>
-                    <MenuItem value="Diseño Web">Diseño Web</MenuItem>
-                    <MenuItem value="Matemática II">Matemática II</MenuItem>
+                    {materiasDisponibles.map((materia) => (
+                      <MenuItem key={materia} value={materia}>{materia}</MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -407,61 +420,33 @@ export const MesasExamenScreen: React.FC = () => {
             </Box>
           )}
 
-          {/* Sección de Resultados Recientes (Visto en el mockup) */}
+          {/* Sección de Resultados Recientes */}
           <Box sx={{ mt: 5, mb: 4 }}>
             <Typography variant="h5" sx={{ fontWeight: 600, color: '#005b7f', mb: 2, fontSize: '1.5rem' }}>
               Resultados Recientes
             </Typography>
-            <Paper 
-              elevation={0} 
-              sx={{ 
-                p: 3, 
-                border: `1px solid ${themeTokens.colors.border}`, 
-                borderRadius: `${themeTokens.borderRadius.card}px`,
-                maxWidth: '900px'
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#0B1C30', fontSize: '1.125rem' }}>
-                    Arquitectura de Sistemas
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#40484E' }}>
-                    Turno Mayo 2024
-                  </Typography>
-                </Box>
-                <BadgeEstado estado="activo" customLabel="APROBADO" />
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3, maxWidth: '900px' }}>
+                <CircularProgress size={32} />
               </Box>
-
-              <Divider sx={{ mb: 2 }} />
-
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', textAlign: 'center' }}>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#70787E', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Oral
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#0B1C30', mt: 0.5 }}>
-                    7
-                  </Typography>
-                </Box>
-                <Box sx={{ borderLeft: '1px solid #F1F5F9', borderRight: '1px solid #F1F5F9' }}>
-                  <Typography variant="caption" sx={{ color: '#70787E', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Escrito
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#0B1C30', mt: 0.5 }}>
-                    9
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#005b7f', textTransform: 'uppercase', fontWeight: 700 }}>
-                    Final
-                  </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: '#005B7F', mt: 0.5 }}>
-                    8
-                  </Typography>
-                </Box>
-              </Box>
-            </Paper>
+            ) : resultadoReciente ? (
+              <ResultadoRecienteCard resultado={resultadoReciente} />
+            ) : (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  border: `1px solid ${themeTokens.colors.border}`,
+                  borderRadius: `${themeTokens.borderRadius.card}px`,
+                  maxWidth: '900px',
+                  textAlign: 'center',
+                }}
+              >
+                <Typography variant="body2" sx={{ color: '#40484E' }}>
+                  No hay resultados recientes para la carrera seleccionada.
+                </Typography>
+              </Paper>
+            )}
           </Box>
 
           {/* GUIA FOOTER "¿CÓMO FUNCIONA?" - AHORA EXCLUSIVO DE LA PESTAÑA 0 */}
@@ -705,9 +690,11 @@ export const MesasExamenScreen: React.FC = () => {
                           <Typography variant="body2" sx={{ fontWeight: 700, color: '#0B1C30' }}>
                             {row.materia}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#6A748B', display: 'block' }}>
-                            Sistemas de Información
-                          </Typography>
+                          {row.turno && (
+                            <Typography variant="caption" sx={{ color: '#6A748B', display: 'block' }}>
+                              Turno {row.turno}
+                            </Typography>
+                          )}
                         </TableCell>
                         <TableCell>{row.fecha}</TableCell>
                         <TableCell>
@@ -770,7 +757,7 @@ export const MesasExamenScreen: React.FC = () => {
         }}
         sx={{
           '& .MuiPaper-root': {
-            borderRadius: '16px',
+            borderRadius: `${themeTokens.borderRadius.modal}px`,
             padding: '8px'
           }
         }}
@@ -816,7 +803,7 @@ export const MesasExamenScreen: React.FC = () => {
         }}
         sx={{
           '& .MuiPaper-root': {
-            borderRadius: '16px',
+            borderRadius: `${themeTokens.borderRadius.modal}px`,
             padding: '8px'
           }
         }}

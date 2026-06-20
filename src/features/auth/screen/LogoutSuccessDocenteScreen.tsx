@@ -5,13 +5,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useNavigate } from 'react-router-dom';
 import logoIssrc from '../../../assets/logos/logo_color_ISSRC.svg';
 import { docenteLoginPath } from '@/Routes/docenteRoutes';
+import { themeTokens } from '@/common/components/sistema/theme';
 
-/**
- * Pantalla intermedia que se muestra después de cerrar sesión en el Portal
- * Docentes. Mensaje institucional + dos acciones (volver a login o al inicio).
- * Diseño alineado al Figma del Portal Docentes (texto a la izquierda,
- * sin glassmorphism — diferente al LogoutSuccess genérico del Portal Estudiantes).
- */
 export const LogoutSuccessDocenteScreen: React.FC = () => {
   const navigate = useNavigate();
 
@@ -25,12 +20,12 @@ export const LogoutSuccessDocenteScreen: React.FC = () => {
         justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
-        bgcolor: 'background.default',
+        bgcolor: themeTokens.colors.background,
         px: 3,
         py: 6,
       }}
     >
-      {/* Círculos decorativos del fondo (mismo patrón que el Figma) */}
+      {/* Círculos decorativos del fondo */}
       <Box
         sx={{
           position: 'absolute',
@@ -65,9 +60,9 @@ export const LogoutSuccessDocenteScreen: React.FC = () => {
           position: 'relative',
           width: '100%',
           maxWidth: 672,
-          bgcolor: '#FFFFFF',
-          borderRadius: '24px',
-          boxShadow: '0px 20px 60px rgba(0, 66, 94, 0.08)',
+          bgcolor: themeTokens.colors.surface,
+          borderRadius: themeTokens.borderRadius.card,
+          boxShadow: themeTokens.shadows.xl,
           p: { xs: 4, sm: 6 },
           display: 'flex',
           flexDirection: 'column',
@@ -87,20 +82,16 @@ export const LogoutSuccessDocenteScreen: React.FC = () => {
             bgcolor: 'rgba(143, 249, 174, 0.3)',
           }}
         >
-          <VerifiedIcon sx={{ fontSize: 40, color: '#006D39' }} />
+          <VerifiedIcon sx={{ fontSize: 40, color: themeTokens.colors.success }} />
         </Box>
 
         {/* Heading + subtítulo */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
           <Typography
-            variant="h1"
+            variant="h3"
             component="h1"
             sx={{
-              fontWeight: 700,
-              fontSize: { xs: '2rem', sm: '2.75rem' },
-              lineHeight: 1.1,
-              color: '#171C22',
-              letterSpacing: '-0.02em',
+              color: themeTokens.colors.textDark,
               textAlign: 'center',
             }}
           >
@@ -108,10 +99,9 @@ export const LogoutSuccessDocenteScreen: React.FC = () => {
           </Typography>
 
           <Typography
+            variant="body1"
             sx={{
-              fontSize: { xs: '0.95rem', sm: '1.05rem' },
-              lineHeight: 1.6,
-              color: '#40484E',
+              color: themeTokens.colors.textPrimary,
               maxWidth: 540,
               textAlign: 'center',
             }}
@@ -139,23 +129,8 @@ export const LogoutSuccessDocenteScreen: React.FC = () => {
             variant="contained"
             onClick={() => navigate(docenteLoginPath)}
             sx={{
-              bgcolor: '#00425E',
-              color: '#FFFFFF',
-              borderRadius: '9999px',
-              textTransform: 'none',
-              fontWeight: 700,
-              fontSize: '1rem',
               px: 5,
               py: 2,
-              boxShadow:
-                '0px 20px 25px -5px rgba(0, 66, 94, 0.2), 0px 8px 10px -6px rgba(0, 66, 94, 0.2)',
-              '&:hover': {
-                bgcolor: '#00364F',
-                transform: 'translateY(-1px)',
-                boxShadow:
-                  '0px 24px 30px -3px rgba(0, 66, 94, 0.25), 0px 10px 14px -5px rgba(0, 66, 94, 0.25)',
-              },
-              transition: 'all 0.2s ease-in-out',
             }}
           >
             Iniciar Sesión nuevamente
@@ -163,28 +138,22 @@ export const LogoutSuccessDocenteScreen: React.FC = () => {
 
           <Button
             variant="text"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/accesoStaff')}
             sx={{
-              bgcolor: 'rgba(222, 227, 235, 0.5)',
-              color: '#00425E',
-              borderRadius: '9999px',
-              textTransform: 'none',
-              fontWeight: 700,
-              fontSize: '1rem',
+              bgcolor: themeTokens.colors.surfaceHover,
+              color: themeTokens.colors.primary,
               px: 5,
               py: 2,
               '&:hover': {
-                bgcolor: 'rgba(202, 212, 226, 0.7)',
-                transform: 'translateY(-1px)',
+                bgcolor: themeTokens.colors.surfaceHoverDark,
               },
-              transition: 'all 0.2s ease-in-out',
             }}
           >
             Volver al Inicio
           </Button>
         </Box>
 
-        <Divider sx={{ borderColor: '#F1F5F9', width: '100%' }} />
+        <Divider sx={{ borderColor: themeTokens.colors.border, width: '100%' }} />
 
         {/* Footer: garantía de cierre seguro */}
         <Box
@@ -203,32 +172,31 @@ export const LogoutSuccessDocenteScreen: React.FC = () => {
               gap: 1,
             }}
           >
-            <LockOutlinedIcon sx={{ fontSize: 14, color: '#94A3B8' }} />
+            <LockOutlinedIcon sx={{ fontSize: 14, color: themeTokens.colors.textSecondary }} />
             <Typography
+              variant="caption"
               sx={{
                 fontWeight: 700,
-                fontSize: 11,
-                lineHeight: 1.45,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
-                color: '#94A3B8',
+                color: themeTokens.colors.textSecondary,
               }}
             >
               Cierre de sesión seguro verificado
             </Typography>
           </Box>
 
-          {/* Recuadro con el logo ISSRC (separado del texto del footer) */}
+          {/* Recuadro con el logo ISSRC */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               p: 2,
-              border: '1px solid #F8FAFC',
-              borderRadius: '20px',
-              boxShadow: '0px 4px 16px rgba(0, 66, 94, 0.03)',
-              bgcolor: '#FFFFFF',
+              border: `1px solid ${themeTokens.colors.border}`,
+              borderRadius: themeTokens.borderRadius.card,
+              boxShadow: themeTokens.shadows.sm,
+              bgcolor: themeTokens.colors.surface,
             }}
           >
             <Box
